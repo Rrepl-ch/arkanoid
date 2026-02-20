@@ -17,12 +17,23 @@ export const ARKANOID_BALLS_ADDRESS = addr('VITE_ARKANOID_BALLS_ADDRESS')
 export const ARKANOID_GAMES_ADDRESS = addr('VITE_ARKANOID_GAMES_ADDRESS')
 export const ARKANOID_CHECKIN_ADDRESS = addr('VITE_ARKANOID_CHECKIN_ADDRESS')
 
+/** Same pattern as crazy-racer CRAZY_RACER_CARS_ABI: mint + ownsBallType. */
 export const ARKANOID_BALLS_ABI = [
   {
     inputs: [{ internalType: 'uint8', name: 'ballType', type: 'uint8' }],
     name: 'mint',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'owner', type: 'address' },
+      { internalType: 'uint8', name: 'ballType', type: 'uint8' },
+    ],
+    name: 'ownsBallType',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const

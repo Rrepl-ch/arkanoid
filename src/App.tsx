@@ -18,8 +18,10 @@ import ArkanoidHeader from './components/ArkanoidHeader'
 import { useNicknameForAddress } from './hooks/useNicknameForAddress'
 import { useMiniApp } from './providers/MiniAppProvider'
 import { recordCoinbaseConnect } from './stats/arkanoidStats'
-import { hasMintedBall, getSelectedBallId, getMintedBallIds } from './ball/ballStorage'
+import { getSelectedBallId } from './ball/ballStorage'
 import { getBallColor } from './ball/ballConfig'
+import { BALL_TYPE_IDS } from './contracts/arkanoidBalls'
+import { useOwnedBalls } from './hooks/useArkanoidBallsContract'
 import { getTheme, setTheme as persistTheme, type Theme } from './theme/themeStorage'
 import './App.css'
 
@@ -39,6 +41,8 @@ export default function App() {
     : nickname
   const effectiveAvatar = baseUser?.pfpUrl ?? null
   const needsNickname = Boolean(address && !effectiveNickname)
+  const { owned: ownedBallIds } = useOwnedBalls()
+  const hasMintedBall = ownedBallIds.size > 0
   const [game, setGame] = useState<GameId>('menu')
   const [arkanoidStartLevel, setArkanoidStartLevel] = useState(1)
   const [activeTab, setActiveTab] = useState<TabId | null>(null)
@@ -168,7 +172,13 @@ export default function App() {
       {game === 'arkanoid' && (
         <Arkanoid
           initialLevel={arkanoidStartLevel}
-          ballColor={getBallColor((() => { const m = getMintedBallIds(); const s = getSelectedBallId(); return m.includes(s) ? s : m[0] ?? 'classic'; })())}
+          ballColor={getBallColor((() => {
+            const s = getSelectedBallId()
+            const si = BALL_TYPE_IDS.indexOf(s as (typeof BALL_TYPE_IDS)[number])
+            if (si >= 0 && ownedBallIds.has(si)) return s
+            if (ownedBallIds.size === 0) return 'classic'
+            return BALL_TYPE_IDS[Math.min(...ownedBallIds)]
+          })())}
           onBack={() => setGame('arkanoid-levels')}
         />
       )}
