@@ -52,8 +52,12 @@ export default function BallSelect() {
         return
       }
       const result = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
-      if (!result.ok) {
-        setMintError(result.error)
+      const ok = result && typeof result === 'object' && (result as { ok?: boolean }).ok === true
+      if (!ok) {
+        const msg = result && typeof result === 'object' && 'error' in result && typeof (result as { error: string }).error === 'string'
+          ? (result as { error: string }).error
+          : 'Mint failed'
+        setMintError(msg)
         return
       }
       mintBall(ballId)

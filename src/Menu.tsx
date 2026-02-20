@@ -38,8 +38,12 @@ export default function Menu({
         return
       }
       const result = await checkInViaContract(provider as EIP1193Provider)
-      if (!result.ok) {
-        setCheckInError(result.error)
+      const ok = result && typeof result === 'object' && (result as { ok?: boolean }).ok === true
+      if (!ok) {
+        const msg = result && typeof result === 'object' && 'error' in result && typeof (result as { error: string }).error === 'string'
+          ? (result as { error: string }).error
+          : 'Check-in failed'
+        setCheckInError(msg)
         return
       }
       recordCheckIn()
