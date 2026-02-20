@@ -1,0 +1,91 @@
+/* Minesweeper start screen (mode selection) */
+.minesweeper-menu {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.minesweeper-menu-title {
+  font-family: var(--font-arcade);
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+  color: var(--accent);
+  text-shadow: 0 0 20px var(--glow);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+.minesweeper-menu-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 8px 0;
+}
+
+.minesweeper-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.minesweeper-mode-btn {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  background: var(--card);
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.minesweeper-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+.minesweeper-mode-btn.is-active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 20px var(--glow);
+}
+
+.minesweeper-hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.minesweeper-grid-wrap {
+  padding: 12px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.minesweeper-cell {
+  background: rgba(26, 26, 36, 0.9);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: inherit;
+  color: var(--muted);
+  transition: background 0.15s;
+}
+.minesweeper-cell:hover {
+  background: rgba(40, 40, 52, 0.95);
+}

@@ -1,0 +1,70 @@
+.screen--games {
+  padding: 20px 16px;
+}
+
+.game-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.game-select-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.game-select-icon {
+  font-size: 1.5rem;
+}
+
+.game-select-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.game-select-play {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.game-select-mint {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.game-select-mint:hover {
+  box-shadow: 0 0 16px var(--glow);
+}
+
+.game-select-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.game-select-error {
+  font-size: 0.8rem;
+  color: var(--accent);
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 12px 0 0;
+}

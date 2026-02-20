@@ -1,0 +1,48 @@
+.arkanoid-header {
+  text-align: center;
+}
+
+.arkanoid-header-bricks {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.arkanoid-header-brick {
+  width: 24px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.arkanoid-header-brick:nth-child(1) { background: #ff6b6b; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(2) { background: #ffd93d; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(3) { background: #6bcb77; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(4) { background: #4d96ff; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(5) { background: #9b59b6; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(6) { background: #e67e22; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(7) { background: #00e5ff; border-color: rgba(255,255,255,0.25); }
+.arkanoid-header-brick:nth-child(8) { background: #ff8f00; border-color: rgba(255,255,255,0.25); }
+
+.arkanoid-header-title {
+  font-family: var(--font-arcade);
+  font-size: clamp(1.25rem, 5vw, 1.5rem);
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--accent);
+  text-shadow: 0 0 24px var(--glow);
+  line-height: 1.6;
+  letter-spacing: 0.05em;
+}
+
+.arkanoid-header-tagline {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 24px;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
