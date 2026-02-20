@@ -25,8 +25,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: m >= 1000 ? `${m / 1000}k pts` : `${m} pts`,
     description: `Reach ${m.toLocaleString()} points`,
     icon: '⭐',
-    check: (s) => s.bestScore >= m,
-    getProgress: (s): AchievementProgress => ({
+    check: (s: ArkanoidStats) => s.bestScore >= m,
+    getProgress: (s: ArkanoidStats): AchievementProgress => ({
       unlocked: s.bestScore >= m,
       current: s.bestScore,
       target: m,
@@ -37,8 +37,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: m === 20 ? 'Champion' : `Level ${m}`,
     description: `Clear level ${m}`,
     icon: m === 20 ? '👑' : '🧱',
-    check: (s) => s.maxLevelReached >= m,
-    getProgress: (s): AchievementProgress => ({
+    check: (s: ArkanoidStats) => s.maxLevelReached >= m,
+    getProgress: (s: ArkanoidStats): AchievementProgress => ({
       unlocked: s.maxLevelReached >= m,
       current: s.maxLevelReached,
       target: m,
@@ -49,8 +49,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: m === 1 ? 'First run' : 'Regular',
     description: m === 1 ? 'Play your first game' : `Play ${m} games`,
     icon: m === 1 ? '🎮' : '🕹️',
-    check: (s) => s.gamesPlayed >= m,
-    getProgress: (s): AchievementProgress => ({
+    check: (s: ArkanoidStats) => s.gamesPlayed >= m,
+    getProgress: (s: ArkanoidStats): AchievementProgress => ({
       unlocked: s.gamesPlayed >= m,
       current: s.gamesPlayed,
       target: m,

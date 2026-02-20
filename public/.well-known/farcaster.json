@@ -7,25 +7,25 @@
   "miniapp": {
     "version": "1",
     "name": "Arkanoid",
-    "homeUrl": "https://your-app.com",
-    "iconUrl": "https://your-app.com/icon.png",
-    "splashImageUrl": "https://your-app.com/splash.png",
+    "homeUrl": "https://__APP_URL__",
+    "iconUrl": "https://__APP_URL__/icon.png",
+    "splashImageUrl": "https://__APP_URL__/splash.png",
     "splashBackgroundColor": "#0c0a14",
-    "webhookUrl": "https://your-app.com/api/webhook",
+    "webhookUrl": "https://__APP_URL__/api/webhook",
     "subtitle": "Classic brick breaker",
     "description": "Break bricks, catch power-ups, and clear 20 levels. Lives, multiball, and retro style.",
     "screenshotUrls": [
-      "https://your-app.com/s1.png",
-      "https://your-app.com/s2.png",
-      "https://your-app.com/s3.png"
+      "https://__APP_URL__/s1.png",
+      "https://__APP_URL__/s2.png",
+      "https://__APP_URL__/s3.png"
     ],
     "primaryCategory": "games",
     "tags": ["games", "retro", "arkanoid", "miniapp", "base"],
-    "heroImageUrl": "https://your-app.com/og.png",
+    "heroImageUrl": "https://__APP_URL__/og.png",
     "tagline": "Play instantly",
     "ogTitle": "Arkanoid",
     "ogDescription": "Classic brick breaker with power-ups. Play on Base.",
-    "ogImageUrl": "https://your-app.com/og.png",
+    "ogImageUrl": "https://__APP_URL__/og.png",
     "noindex": false
   }
 }

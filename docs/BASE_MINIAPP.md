@@ -8,19 +8,50 @@
 |-----|--------|
 | **MiniApp SDK** | Установлен `@farcaster/miniapp-sdk` |
 | **Показ приложения** | В `App.tsx` в `useEffect` вызывается `sdk.actions.ready()` |
-| **Манифест** | Файл `public/.well-known/farcaster.json` заполнен под Arkanoid (интерфейс на английском) |
-| **Embed-мета** | В `index.html` есть `<meta name="fc:miniapp" ...>` с кнопкой Play, именем, url и splash |
+| **Манифест** | Файл `public/.well-known/farcaster.json` с плейсхолдером `__APP_URL__` |
+| **Embed-мета** | В `index.html` есть `<meta name="fc:miniapp" ...>` с абсолютными URL через `__APP_URL__` |
+| **Скрипт подстановки URL** | `scripts/replace-app-url.js` подставляет твой домен перед сборкой |
 
-## Что нужно сделать
+## Подключение кошелька — что нужно для работы
 
-### 1. Подставить свои URL
+Кошелёк в приложении работает через **провайдер хоста**: [Mini App SDK](https://miniapps.farcaster.xyz/docs/guides/wallets) вызывает `sdk.wallet.getEthereumProvider()`, и провайдер даёт сам клиент (Base app или поддерживаемый Farcaster-клиент).
 
-Везде, где указано `https://your-app.com`, заменить на реальный URL приложения (например `https://arkanoid.vercel.app`):
+### Что обязательно
 
-- **Манифест:** `public/.well-known/farcaster.json` — поля `homeUrl`, `iconUrl`, `splashImageUrl`, `webhookUrl`, `screenshotUrls`, `heroImageUrl`, `ogImageUrl`
-- **index.html:** в мета `fc:miniapp` — поле `url`, а для `imageUrl` и `splashImageUrl` использовать **абсолютные** URL (например `https://your-app.com/embed.png`)
+1. **Приложение открыто как Mini App**  
+   Пользователь должен зайти в приложение **из приложения Base** (или другого клиента с поддержкой Mini Apps), а не просто открыть ссылку в обычном браузере. В браузере по прямой ссылке провайдер кошелька не внедряется, и подключение не сработает.
 
-### 2. Добавить реальные ресурсы
+2. **Никаких своих API ключей не нужно**  
+   Провайдер, `eth_requestAccounts` и подпись запросов обеспечивает хост. В коде не нужны ключи или секреты для самого факта подключения кошелька.
+
+3. **У пользователя есть кошелёк в клиенте**  
+   В приложении Base (или в клиенте) у пользователя должен быть доступен кошелёк (встроенный Base/Coinbase или подключённый внешний). Если кошелька нет, хост может предложить его создать/подключить.
+
+### Как проверить
+
+- Задеплой приложение и открой его **через Base app** (пост, каталог мини-приложений или [Base Build Preview](https://www.base.dev/preview) с запуском в контексте Base).
+- На экране «Connect wallet» нажми Coinbase (или WalletConnect, если хост это поддерживает); должен запроситься доступ к аккаунту и после подтверждения появиться адрес.
+
+### Если подключение не работает
+
+- Убедись, что открываешь приложение именно как Mini App (из Base app / Preview), а не в отдельной вкладке браузера.
+- В коде при необходимости можно проверять поддержку: `sdk.getCapabilities()` и наличие `wallet.getEthereumProvider` перед вызовом подключения.
+
+## Выгрузка на Base (кратко)
+
+1. **Задеплой** приложение на Vercel / Netlify и запомни URL (например `https://arkanoid.vercel.app`).
+2. **Собери с подстановкой URL:**  
+   `APP_URL=https://твой-домен.vercel.app npm run build:base`  
+   (скрипт заменит `__APP_URL__` в манифесте и в `index.html`, затем выполнится сборка.)
+3. **Залий билд** на хостинг (или подключи автодеплой из репозитория).
+4. **Добавь картинки** в `public/`: `icon.png`, `splash.png`, `embed.png`, `og.png`, `s1.png`, `s2.png`, `s3.png` (см. ниже).
+5. **Account association:** [Base Build → Account association](https://www.base.dev/preview?tab=account) — введи App URL, Submit → Verify, скопируй `header`, `payload`, `signature` в `accountAssociation` в `public/.well-known/farcaster.json`.
+6. **Превью:** [Base Build Preview](https://www.base.dev/preview) — проверь эмбед и запуск.
+7. **Публикация:** в приложении Base создай пост с URL приложения.
+
+## Что нужно сделать вручную
+
+### 1. Добавить реальные ресурсы
 
 - **icon.png** — иконка приложения (манифест и мета)
 - **splash.png** — заставка при запуске
@@ -28,20 +59,20 @@
 - **og.png** — Open Graph / герой-картинка
 - **s1.png, s2.png, s3.png** — скриншоты для карточки в сторе
 
-Класть в `public/`, чтобы раздавались по адресам вида `https://ваш-домен.com/icon.png` и т.д.
+Класть в `public/`, чтобы по адресам вида `https://ваш-домен.com/icon.png` отдавались нужные файлы.
 
-### 3. Account association (нужно для публикации)
+### 2. Account association (нужно для публикации)
 
-1. Задеплоить приложение так, чтобы по адресу `https://ваш-домен.com/.well-known/farcaster.json` отдавался актуальный манифест.
+1. Убедиться, что по адресу `https://ваш-домен.com/.well-known/farcaster.json` отдаётся манифест (уже с подставленным URL после `build:base`).
 2. Открыть [Base Build → Account association](https://www.base.dev/preview?tab=account).
 3. Ввести **App URL** (ваш домен), нажать Submit, затем **Verify**.
-4. Скопировать сгенерированные `header`, `payload` и `signature` в `public/.well-known/farcaster.json` в блок `accountAssociation`.
+4. Скопировать сгенерированные `header`, `payload` и `signature` в `public/.well-known/farcaster.json` в блок `accountAssociation` и задеплоить снова.
 
-### 4. По желанию: webhook
+### 3. По желанию: webhook
 
 Если бэкенда нет, можно не использовать `webhookUrl` или оставить заглушку; при необходимости указать рабочий URL или простой «пинг»-эндпоинт.
 
-### 5. Превью и публикация
+### 4. Превью и публикация
 
 1. **Превью:** [Base Build Preview](https://www.base.dev/preview) — вставить URL приложения, проверить эмбед, запуск и вкладку Metadata.
 2. **Публикация:** в приложении Base создать пост с URL приложения, чтобы отправить мини-приложение на модерацию.

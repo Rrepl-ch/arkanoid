@@ -6,12 +6,17 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:base": "node scripts/replace-app-url.js && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@farcaster/miniapp-sdk": "^0.2.2",
+    "@farcaster/miniapp-wagmi-connector": "^1.1.1",
+    "@tanstack/react-query": "^5.90.21",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "viem": "^2.46.2",
+    "wagmi": "^3.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

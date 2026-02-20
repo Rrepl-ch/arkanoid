@@ -10,7 +10,6 @@ async function connectWithProvider(): Promise<string | null> {
     if (!provider) return null
     const accounts = (await provider.request({
       method: 'eth_requestAccounts',
-      params: [],
     })) as string[] | undefined
     if (accounts?.length && accounts[0]) return accounts[0]
     return null
@@ -56,7 +55,7 @@ export function useWalletConnect() {
       if (addr) {
         setAddress(addr)
         recordCoinbaseConnect()
-        const fromFarcaster = await trySetNicknameFromFarcaster(addr)
+        await trySetNicknameFromFarcaster(addr)
         syncNicknameFromStorage(addr)
       } else setError('Could not connect')
     } catch (e) {

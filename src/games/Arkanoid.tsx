@@ -46,7 +46,7 @@ export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#fffff
   const [level, setLevel] = useState(Math.min(Math.max(1, initialLevel), MAX_LEVEL))
   const [gameOver, setGameOver] = useState(false)
   const [levelComplete, setLevelComplete] = useState(false)
-  const [elapsed, setElapsed] = useState(0)
+  const [_elapsed, setElapsed] = useState(0)
   const [ballLaunched, setBallLaunched] = useState(false)
   const levelCompleteShownRef = useRef(false)
   const PADDLE_W = Math.min(90, Math.floor(W * 0.28))

@@ -1,5 +1,5 @@
-import { sdk } from '@farcaster/miniapp-sdk'
 import { useEffect, useState } from 'react'
+import { useAccount, useConnect } from 'wagmi'
 import Menu from './Menu'
 import ArkanoidLevelSelect from './ArkanoidLevelSelect'
 import Arkanoid from './games/Arkanoid'
@@ -14,7 +14,8 @@ import GameSelect from './screens/GameSelect'
 import WalletConnect from './screens/WalletConnect'
 import SetNickname from './screens/SetNickname'
 import ArkanoidHeader from './components/ArkanoidHeader'
-import { useWalletConnect } from './hooks/useWalletConnect'
+import { useNicknameForAddress } from './hooks/useNicknameForAddress'
+import { recordCoinbaseConnect } from './stats/arkanoidStats'
 import { hasMintedBall, getSelectedBallId, getMintedBallIds } from './ball/ballStorage'
 import { getBallColor } from './ball/ballConfig'
 import { getTheme, setTheme as persistTheme, type Theme } from './theme/themeStorage'
@@ -26,7 +27,9 @@ export type GameId = 'menu' | 'arkanoid-levels' | 'arkanoid' | 'games' | 'minesw
 const REQUIRE_WALLET = true
 
 export default function App() {
-  const { address, nickname, setNickname, needsNickname, loading, connecting, error, connect } = useWalletConnect()
+  const { address, status } = useAccount()
+  const { connect, connectors, isPending: connecting, error: connectError } = useConnect()
+  const { nickname, setNickname, needsNickname } = useNicknameForAddress(address ?? undefined)
   const [game, setGame] = useState<GameId>('menu')
   const [arkanoidStartLevel, setArkanoidStartLevel] = useState(1)
   const [activeTab, setActiveTab] = useState<TabId | null>(null)
@@ -40,8 +43,10 @@ export default function App() {
   }
 
   useEffect(() => {
-    sdk.actions.ready()
-  }, [])
+    if (address) recordCoinbaseConnect()
+  }, [address])
+
+  const loading = status === 'reconnecting'
 
   if (REQUIRE_WALLET && !address) {
     return (
@@ -52,10 +57,10 @@ export default function App() {
             <p className="wallet-gate-loading">Loading…</p>
           ) : (
             <WalletConnect
-              onCoinbase={connect}
-              onWalletConnect={connect}
+              connectors={[...connectors]}
+              connect={connect}
               connecting={connecting}
-              error={error ?? undefined}
+              error={connectError?.message}
             />
           )}
         </div>
