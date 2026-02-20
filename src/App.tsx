@@ -57,7 +57,7 @@ export default function App() {
             <p className="wallet-gate-loading">Loading…</p>
           ) : (
             <WalletConnect
-              connectors={[...connectors]}
+              connectors={connectors}
               connect={connect}
               connecting={connecting}
               error={connectError?.message}
