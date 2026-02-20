@@ -1,21 +1,17 @@
 /**
- * Contract addresses and ABIs for wagmi (useWriteContract).
- * Same pattern as crazy-racer: env → address, full ABI for each contract.
+ * Contract addresses and ABIs for wagmi.
+ * Vite requires STATIC access to import.meta.env.VITE_* — dynamic keys are NOT replaced at build time.
+ * Same pattern as crazy-racer contract.ts but with import.meta.env instead of process.env.
  */
 
-const empty = '0x0000000000000000000000000000000000000000' as const
+export const ARKANOID_BALLS_ADDRESS =
+  (import.meta.env.VITE_ARKANOID_BALLS_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
-function addr(key: string): `0x${string}` {
-  const meta = typeof import.meta !== 'undefined' ? (import.meta as { env?: Record<string, string | undefined> }) : null
-  if (!meta?.env) return empty as `0x${string}`
-  const v = meta.env[key]
-  if (typeof v !== 'string' || !v.startsWith('0x') || v.length !== 42) return empty as `0x${string}`
-  return v as `0x${string}`
-}
+export const ARKANOID_GAMES_ADDRESS =
+  (import.meta.env.VITE_ARKANOID_GAMES_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
-export const ARKANOID_BALLS_ADDRESS = addr('VITE_ARKANOID_BALLS_ADDRESS')
-export const ARKANOID_GAMES_ADDRESS = addr('VITE_ARKANOID_GAMES_ADDRESS')
-export const ARKANOID_CHECKIN_ADDRESS = addr('VITE_ARKANOID_CHECKIN_ADDRESS')
+export const ARKANOID_CHECKIN_ADDRESS =
+  (import.meta.env.VITE_ARKANOID_CHECKIN_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
 /** Same pattern as crazy-racer CRAZY_RACER_CARS_ABI: mint + ownsBallType. */
 export const ARKANOID_BALLS_ABI = [
