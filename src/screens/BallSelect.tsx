@@ -35,42 +35,36 @@ export default function BallSelect() {
     const ballTypeId = getBallTypeId(ballId)
     const hasBallsContract = !!getArkanoidBallsAddress()
 
-    if (hasBallsContract && ballTypeId !== null) {
-      setMintLoading(ballId)
-      try {
-        const provider = await sdk.wallet.getEthereumProvider()
-        if (!provider) {
-          setMintError('Connect wallet first')
-          return
-        }
-        const ok = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
-        if (!ok) {
-          setMintError('Mint failed. Try again.')
-          return
-        }
-        mintBall(ballId)
-        if (ball.isGolden) setGoldenBallOwner('current-user')
-        refresh()
-        setSelected(ballId)
-        setSelectedBallId(ballId)
-      } catch (e) {
-        setMintError(e instanceof Error ? e.message : 'Mint failed')
-      } finally {
-        setMintLoading(null)
-      }
-      return
-    }
-    if (!hasBallsContract && getBallPriceEth(ballId)) {
-      setMintError('Ball contract not configured')
-      return
-    }
     if (!hasBallsContract) {
-      mintBall(ballId)
-      if (mintedIds.length === 0) {
-        setSelected(ballId)
-        setSelectedBallId(ballId)
+      setMintError('Ball contract not configured. Set VITE_ARKANOID_BALLS_ADDRESS in .env and rebuild.')
+      return
+    }
+    if (ballTypeId === null) {
+      setMintError('Unknown ball type')
+      return
+    }
+
+    setMintLoading(ballId)
+    try {
+      const provider = await sdk.wallet.getEthereumProvider()
+      if (!provider) {
+        setMintError('Connect wallet first (open app in Base/Farcaster)')
+        return
       }
+      const ok = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
+      if (!ok) {
+        setMintError('Mint failed. Try again.')
+        return
+      }
+      mintBall(ballId)
+      if (ball.isGolden) setGoldenBallOwner('current-user')
       refresh()
+      setSelected(ballId)
+      setSelectedBallId(ballId)
+    } catch (e) {
+      setMintError(e instanceof Error ? e.message : 'Mint failed')
+    } finally {
+      setMintLoading(null)
     }
   }
 
