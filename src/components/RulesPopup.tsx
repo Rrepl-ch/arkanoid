@@ -31,14 +31,14 @@ export default function RulesPopup({ onClose }: Props) {
   return (
     <div className="rules-popup-overlay" role="dialog" aria-modal="true" aria-labelledby="rules-popup-title">
       <div className="rules-popup">
-        <h2 id="rules-popup-title" className="rules-popup-title">Правила</h2>
+        <h2 id="rules-popup-title" className="rules-popup-title">Rules</h2>
         <div className="rules-popup-content">
-          <p><strong>Arkanoid:</strong> разбей все кирпичи, не потеряв мяч. Двигай платформу пальцем, тап — старт. Сердечко — +1 жизнь, жёлтая «3» — мультибол.</p>
-          <p><strong>Сапёр:</strong> открой все клетки без мин. Тап — открыть, долгое нажатие — флаг.</p>
-          <p><strong>Space Shooter:</strong> зажми экран для стрельбы, двигай корабль пальцем.</p>
+          <p><strong>Arkanoid:</strong> break all bricks without losing the ball. Move your finger to move the paddle; tap to launch. Red heart — +1 life, yellow «3» — multiball.</p>
+          <p><strong>Minesweeper:</strong> reveal all cells without hitting mines. Tap to reveal, long-press to flag.</p>
+          <p><strong>Space Shooter:</strong> hold to shoot, move your finger to move the ship.</p>
         </div>
         <button type="button" className="rules-popup-btn" onClick={handleClose}>
-          Понятно
+          Got it
         </button>
       </div>
     </div>

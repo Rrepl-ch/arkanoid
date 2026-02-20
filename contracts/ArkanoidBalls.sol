@@ -3,48 +3,52 @@ pragma solidity ^0.8.19;
 
 /**
  * @title ArkanoidBalls
- * @notice Mint premium balls: Emerald (0.00025 ETH), Ruby (0.0005 ETH), Gold (0.001 ETH).
+ * @notice Mint balls: types 0–8 free, 9 Emerald (0.00025 ETH), 10 Ruby (0.0005 ETH), 11 Gold (0.001 ETH).
+ *         Ball type IDs match site order: classic, cyan, orange, pink, purple, brown, blue, lime, teal, green, red, gold.
  */
 contract ArkanoidBalls {
-    uint256 public constant EMERALD_PRICE = 0.00025 ether;
-    uint256 public constant RUBY_PRICE = 0.0005 ether;
-    uint256 public constant GOLD_PRICE = 0.001 ether;
+    uint256 public constant MAX_BALL_TYPES = 12;
+
+    // ballTypeId => price in wei (0 = free)
+    uint256[MAX_BALL_TYPES] public prices;
 
     address public owner;
-    mapping(address => bool) public hasEmerald;
-    mapping(address => bool) public hasRuby;
-    mapping(address => bool) public hasGold;
+    mapping(address => mapping(uint8 => bool)) public hasMinted;
 
-    event BallMinted(address indexed user, string ballId);
+    event BallMinted(address indexed user, uint8 ballType);
 
     constructor() {
         owner = msg.sender;
+        // Free: 0–8 (classic, cyan, orange, pink, purple, brown, blue, lime, teal)
+        for (uint256 i = 0; i < 9; i++) {
+            prices[i] = 0;
+        }
+        prices[9] = 0.00025 ether;  // green (Emerald)
+        prices[10] = 0.0005 ether;  // red (Ruby)
+        prices[11] = 0.001 ether;   // gold (Gold)
     }
 
-    function mintEmerald() external payable {
-        require(msg.value == EMERALD_PRICE, "Wrong amount");
-        require(!hasEmerald[msg.sender], "Already minted");
-        hasEmerald[msg.sender] = true;
-        emit BallMinted(msg.sender, "emerald");
+    function mint(uint8 ballType) external payable {
+        require(ballType < MAX_BALL_TYPES, "Invalid ball type");
+        require(!hasMinted[msg.sender][ballType], "Already minted");
+        require(msg.value >= prices[ballType], "Insufficient payment");
+
+        hasMinted[msg.sender][ballType] = true;
+        emit BallMinted(msg.sender, ballType);
+
+        if (msg.value > 0) {
+            (bool ok, ) = payable(owner).call{value: msg.value}("");
+            require(ok, "Transfer failed");
+        }
     }
 
-    function mintRuby() external payable {
-        require(msg.value == RUBY_PRICE, "Wrong amount");
-        require(!hasRuby[msg.sender], "Already minted");
-        hasRuby[msg.sender] = true;
-        emit BallMinted(msg.sender, "ruby");
-    }
-
-    function mintGold() external payable {
-        require(msg.value == GOLD_PRICE, "Wrong amount");
-        require(!hasGold[msg.sender], "Already minted");
-        hasGold[msg.sender] = true;
-        emit BallMinted(msg.sender, "gold");
+    function hasBall(address user, uint8 ballType) external view returns (bool) {
+        return ballType < MAX_BALL_TYPES && hasMinted[user][ballType];
     }
 
     function withdraw() external {
         require(msg.sender == owner, "Not owner");
-        (bool ok,) = payable(owner).call{value: address(this).balance}("");
+        (bool ok, ) = payable(owner).call{value: address(this).balance}("");
         require(ok, "Transfer failed");
     }
 }

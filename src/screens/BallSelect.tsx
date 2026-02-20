@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import { BALLS, getBallPriceEth } from '../ball/ballConfig'
 import {
   getMintedBallIds,
@@ -7,38 +8,70 @@ import {
   setSelectedBallId,
   setGoldenBallOwner,
 } from '../ball/ballStorage'
+import {
+  getArkanoidBallsAddress,
+  getBallTypeId,
+  mintBallViaContract,
+  type EIP1193Provider,
+} from '../contracts/arkanoidBalls'
 import './Screen.css'
 import './BallSelect.css'
 
 export default function BallSelect() {
   const [mintedIds, setMintedIds] = useState<string[]>(() => getMintedBallIds())
   const [selected, setSelected] = useState(() => getSelectedBallId())
+  const [mintLoading, setMintLoading] = useState<string | null>(null)
+  const [mintError, setMintError] = useState<string | null>(null)
 
   const refresh = () => {
     setMintedIds(getMintedBallIds())
     setSelected(getSelectedBallId())
   }
 
-  const handleMint = (ballId: string) => {
+  const handleMint = async (ballId: string) => {
     const ball = BALLS.find((b) => b.id === ballId)
     if (!ball) return
-    const priceEth = getBallPriceEth(ballId)
-    if (priceEth) {
-      if (window.confirm(`${ball.name} costs ${priceEth} ETH. Payment via contract. Add for testing now?`)) {
+    setMintError(null)
+    const ballTypeId = getBallTypeId(ballId)
+    const hasBallsContract = !!getArkanoidBallsAddress()
+
+    if (hasBallsContract && ballTypeId !== null) {
+      setMintLoading(ballId)
+      try {
+        const provider = await sdk.wallet.getEthereumProvider()
+        if (!provider) {
+          setMintError('Connect wallet first')
+          return
+        }
+        const ok = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
+        if (!ok) {
+          setMintError('Mint failed. Try again.')
+          return
+        }
         mintBall(ballId)
         if (ball.isGolden) setGoldenBallOwner('current-user')
         refresh()
         setSelected(ballId)
         setSelectedBallId(ballId)
+      } catch (e) {
+        setMintError(e instanceof Error ? e.message : 'Mint failed')
+      } finally {
+        setMintLoading(null)
       }
       return
     }
-    mintBall(ballId)
-    if (mintedIds.length === 0) {
-      setSelected(ballId)
-      setSelectedBallId(ballId)
+    if (!hasBallsContract && getBallPriceEth(ballId)) {
+      setMintError('Ball contract not configured')
+      return
     }
-    refresh()
+    if (!hasBallsContract) {
+      mintBall(ballId)
+      if (mintedIds.length === 0) {
+        setSelected(ballId)
+        setSelectedBallId(ballId)
+      }
+      refresh()
+    }
   }
 
   const handleSelect = (ballId: string) => {
@@ -51,10 +84,16 @@ export default function BallSelect() {
     <div className="screen screen--ball">
       <h2 className="screen-title">Ball</h2>
       <p className="screen-subtitle">Mint a ball to play. Choose your minted ball.</p>
+      {mintError && (
+        <p className="ball-select-error" role="alert">
+          {mintError}
+        </p>
+      )}
       <div className="screen-content ball-grid">
         {BALLS.map((b) => {
           const isMinted = mintedIds.includes(b.id)
           const isSelected = selected === b.id
+          const isLoading = mintLoading === b.id
           return (
             <div
               key={b.id}
@@ -66,9 +105,10 @@ export default function BallSelect() {
                 <button
                   type="button"
                   className="ball-mint-btn"
+                  disabled={isLoading}
                   onClick={() => handleMint(b.id)}
                 >
-                  {getBallPriceEth(b.id) ? `Mint ${getBallPriceEth(b.id)} ETH` : 'Mint (free)'}
+                  {isLoading ? 'Minting…' : getBallPriceEth(b.id) ? `Mint ${getBallPriceEth(b.id)} ETH` : 'Mint (free)'}
                 </button>
               ) : (
                 <button

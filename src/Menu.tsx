@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { sdk } from '@farcaster/miniapp-sdk'
 import type { GameId } from './App'
 import type { Theme } from './theme/themeStorage'
 import { getArkanoidStats, recordCheckIn } from './stats/arkanoidStats'
+import { getArkanoidCheckInAddress, checkInViaContract, type EIP1193Provider } from './contracts/arkanoidCheckIn'
 import ArkanoidHeader from './components/ArkanoidHeader'
 import './Menu.css'
 
@@ -17,6 +20,35 @@ export default function Menu({
 }) {
   const stats = getArkanoidStats()
   const hasStats = stats.totalScore > 0 || stats.maxLevelReached > 0
+  const [checkInLoading, setCheckInLoading] = useState(false)
+  const [checkInError, setCheckInError] = useState<string | null>(null)
+  const hasCheckInContract = !!getArkanoidCheckInAddress()
+
+  const handleCheckIn = async () => {
+    if (!hasCheckInContract) {
+      recordCheckIn()
+      return
+    }
+    setCheckInError(null)
+    setCheckInLoading(true)
+    try {
+      const provider = await sdk.wallet.getEthereumProvider()
+      if (!provider) {
+        setCheckInError('Connect wallet first')
+        return
+      }
+      const ok = await checkInViaContract(provider as EIP1193Provider)
+      if (!ok) {
+        setCheckInError('Check-in failed. Try again.')
+        return
+      }
+      recordCheckIn()
+    } catch (e) {
+      setCheckInError(e instanceof Error ? e.message : 'Check-in failed')
+    } finally {
+      setCheckInLoading(false)
+    }
+  }
 
   return (
     <div className="menu">
@@ -57,13 +89,19 @@ export default function Menu({
         >
           Play
         </button>
+        {checkInError && (
+          <p className="menu-checkin-error" role="alert">
+            {checkInError}
+          </p>
+        )}
         <button
           type="button"
           className="menu-checkin-btn"
-          onClick={() => recordCheckIn()}
-          title="Check-in (smart contract): +0.2 score per 5 days"
+          disabled={checkInLoading}
+          onClick={handleCheckIn}
+          title="Check-in once per day (on-chain). +0.2 score per 5 days. No fee."
         >
-          Check-in
+          {checkInLoading ? 'Check-in…' : 'Check-in'}
         </button>
       </div>
     </div>

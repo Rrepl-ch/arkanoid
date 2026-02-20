@@ -63,15 +63,15 @@ export default function Pong({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="game-container game-fullscreen" tabIndex={0}>
-      <button className="back secondary" onClick={onBack}>← Назад</button>
+      <button className="back secondary" onClick={onBack}>← Back</button>
       <div className="game-ui">
-        <span>Вы: {playerScore}</span>
-        <span>Соперник: {aiScore}</span>
+        <span>You: {playerScore}</span>
+        <span>Opponent: {aiScore}</span>
       </div>
       <div className="game-canvas-wrap">
         <canvas ref={canvasRef} className="game-canvas" style={{ width: W, height: H }} />
       </div>
-      <p className="hint">Мышь — двигать платформу</p>
+      <p className="hint">Mouse — move paddle</p>
     </div>
   )
 }

@@ -22,19 +22,19 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
     const trimmed = value.trim()
     setError(null)
     if (trimmed.length < NICK_MIN) {
-      setError(`Минимум ${NICK_MIN} символа`)
+      setError(`At least ${NICK_MIN} characters`)
       return
     }
     if (trimmed.length > NICK_MAX) {
-      setError(`Максимум ${NICK_MAX} символов`)
+      setError(`At most ${NICK_MAX} characters`)
       return
     }
     if (!NICK_REG.test(trimmed)) {
-      setError('Только латиница, цифры и _')
+      setError('Only letters, numbers and _')
       return
     }
     if (isNicknameTaken(trimmed, address)) {
-      setError('Этот ник уже занят')
+      setError('This nickname is already taken')
       return
     }
     setNickname(address, trimmed)
@@ -45,8 +45,8 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
     <div className="set-nickname">
       <ArkanoidHeader />
       <div className="set-nickname-form-wrap">
-        <h2 className="set-nickname-title">Придумай ник</h2>
-        <p className="set-nickname-subtitle">Он будет виден в лидерборде. Ники не повторяются.</p>
+        <h2 className="set-nickname-title">Choose a nickname</h2>
+        <p className="set-nickname-subtitle">It will be visible on the leaderboard. Nicknames are unique.</p>
         <form onSubmit={handleSubmit} className="set-nickname-form">
           <input
             type="text"
@@ -59,7 +59,7 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
           />
           {error && <p className="set-nickname-error">{error}</p>}
           <button type="submit" className="set-nickname-submit">
-            Готово
+            Done
           </button>
         </form>
       </div>
