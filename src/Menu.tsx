@@ -1,9 +1,7 @@
-import { useState } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
 import type { GameId } from './App'
 import type { Theme } from './theme/themeStorage'
 import { getArkanoidStats, recordCheckIn } from './stats/arkanoidStats'
-import { getArkanoidCheckInAddress, checkInViaContract, type EIP1193Provider } from './contracts/arkanoidCheckIn'
+import { useCheckInContract } from './hooks/useCheckInContract'
 import ArkanoidHeader from './components/ArkanoidHeader'
 import './Menu.css'
 
@@ -20,39 +18,17 @@ export default function Menu({
 }) {
   const stats = getArkanoidStats()
   const hasStats = stats.totalScore > 0 || stats.maxLevelReached > 0
-  const [checkInLoading, setCheckInLoading] = useState(false)
-  const [checkInError, setCheckInError] = useState<string | null>(null)
-  const hasCheckInContract = !!getArkanoidCheckInAddress()
+  const { checkIn, isPending: checkInPending, error: checkInError, contractDeployed: checkInDeployed } = useCheckInContract(recordCheckIn)
 
-  const handleCheckIn = async () => {
-    if (!hasCheckInContract) {
+  const handleCheckIn = () => {
+    if (!checkInDeployed) {
       recordCheckIn()
       return
     }
-    setCheckInError(null)
-    setCheckInLoading(true)
-    try {
-      const provider = await sdk.wallet.getEthereumProvider()
-      if (!provider) {
-        setCheckInError('Connect wallet first (open app in Base/Farcaster)')
-        return
-      }
-      const result = await checkInViaContract(provider as EIP1193Provider)
-      const ok = result && typeof result === 'object' && (result as { ok?: boolean }).ok === true
-      if (!ok) {
-        const msg = result && typeof result === 'object' && 'error' in result && typeof (result as { error: string }).error === 'string'
-          ? (result as { error: string }).error
-          : 'Check-in failed'
-        setCheckInError(msg)
-        return
-      }
-      recordCheckIn()
-    } catch (e) {
-      setCheckInError(e instanceof Error ? e.message : 'Check-in failed')
-    } finally {
-      setCheckInLoading(false)
-    }
+    checkIn()
   }
+
+  const checkInErrorMsg = checkInError?.message ?? null
 
   return (
     <div className="menu">
@@ -93,19 +69,19 @@ export default function Menu({
         >
           Play
         </button>
-        {checkInError && (
+        {checkInErrorMsg && (
           <p className="menu-checkin-error" role="alert">
-            {checkInError}
+            {checkInErrorMsg}
           </p>
         )}
         <button
           type="button"
           className="menu-checkin-btn"
-          disabled={checkInLoading}
+          disabled={checkInPending}
           onClick={handleCheckIn}
           title="Check-in once per day (on-chain). +0.2 score per 5 days. No fee."
         >
-          {checkInLoading ? 'Check-in…' : 'Check-in'}
+          {checkInPending ? 'Check-in…' : 'Check-in'}
         </button>
       </div>
     </div>

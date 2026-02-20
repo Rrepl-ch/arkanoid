@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { sdk } from '@farcaster/miniapp-sdk'
+import { useEffect, useState } from 'react'
 import { hasMintedBall } from '../ball/ballStorage'
 import { getMintedGameIds, mintGame, type MintableGameId } from '../games/gameStorage'
-import { getArkanoidGamesAddress, mintGameViaContract, type EIP1193Provider } from '../contracts/arkanoidGames'
+import { useMintGameContract } from '../hooks/useMintGameContract'
 import './Screen.css'
 import './GameSelect.css'
 
@@ -17,44 +16,31 @@ export default function GameSelect({
 }) {
   const canPlayArkanoid = hasMintedBall()
   const [mintedGameIds, setMintedGameIds] = useState<MintableGameId[]>(() => getMintedGameIds())
+  const [mintingGameId, setMintingGameId] = useState<MintableGameId | null>(null)
   const minesweeperMinted = mintedGameIds.includes('minesweeper')
   const spaceShooterMinted = mintedGameIds.includes('space_shooter')
 
-  const [mintLoading, setMintLoading] = useState<MintableGameId | null>(null)
-  const [mintError, setMintError] = useState<string | null>(null)
+  const { mint, isPending, isSuccess, error, contractDeployed } = useMintGameContract()
 
-  const handleMintGame = async (gameId: MintableGameId) => {
-    setMintError(null)
-    const hasContract = !!getArkanoidGamesAddress()
-    if (!hasContract) {
+  useEffect(() => {
+    if (isSuccess && mintingGameId) {
+      mintGame(mintingGameId)
+      setMintedGameIds((prev) => (prev.includes(mintingGameId) ? prev : [...prev, mintingGameId]))
+      setMintingGameId(null)
+    }
+  }, [isSuccess, mintingGameId])
+
+  const handleMintGame = (gameId: MintableGameId) => {
+    if (!contractDeployed) {
       mintGame(gameId)
       setMintedGameIds((prev) => (prev.includes(gameId) ? prev : [...prev, gameId]))
       return
     }
-    setMintLoading(gameId)
-    try {
-      const provider = await sdk.wallet.getEthereumProvider()
-      if (!provider) {
-        setMintError('Connect wallet first (open app in Base/Farcaster)')
-        return
-      }
-      const result = await mintGameViaContract(provider as EIP1193Provider, gameId)
-      const ok = result && typeof result === 'object' && (result as { ok?: boolean }).ok === true
-      if (!ok) {
-        const msg = result && typeof result === 'object' && 'error' in result && typeof (result as { error: string }).error === 'string'
-          ? (result as { error: string }).error
-          : 'Mint failed'
-        setMintError(msg)
-        return
-      }
-      mintGame(gameId)
-      setMintedGameIds((prev) => (prev.includes(gameId) ? prev : [...prev, gameId]))
-    } catch (e) {
-      setMintError(e instanceof Error ? e.message : 'Mint failed')
-    } finally {
-      setMintLoading(null)
-    }
+    setMintingGameId(gameId)
+    mint(gameId)
   }
+
+  const mintErrorMsg = error?.message ?? null
 
   return (
     <div className="screen screen--games">
@@ -63,9 +49,9 @@ export default function GameSelect({
       </button>
       <h2 className="screen-title">Games</h2>
       <p className="screen-subtitle">Mint each game to play. Arkanoid requires a minted ball.</p>
-      {mintError && (
+      {mintErrorMsg && (
         <p className="game-select-error" role="alert">
-          {mintError}
+          {mintErrorMsg}
         </p>
       )}
       <div className="game-select-list">
@@ -91,10 +77,10 @@ export default function GameSelect({
             <button
               type="button"
               className="game-select-mint"
-              disabled={mintLoading === 'minesweeper'}
+              disabled={!!mintingGameId}
               onClick={() => handleMintGame('minesweeper')}
             >
-              {mintLoading === 'minesweeper' ? 'Minting…' : 'Mint (free)'}
+              {mintingGameId === 'minesweeper' ? 'Minting…' : 'Mint (free)'}
             </button>
           )}
         </div>
@@ -109,10 +95,10 @@ export default function GameSelect({
             <button
               type="button"
               className="game-select-mint"
-              disabled={mintLoading === 'space_shooter'}
+              disabled={!!mintingGameId}
               onClick={() => handleMintGame('space_shooter')}
             >
-              {mintLoading === 'space_shooter' ? 'Minting…' : 'Mint (free)'}
+              {mintingGameId === 'space_shooter' ? 'Minting…' : 'Mint (free)'}
             </button>
           )}
         </div>
