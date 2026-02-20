@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useAccount } from 'wagmi'
 import { BALLS, getBallPriceEth } from '../ball/ballConfig'
-import { setSelectedBallId } from '../ball/ballStorage'
+import { setSelectedBallId, mintBall } from '../ball/ballStorage'
 import { BALL_TYPE_IDS } from '../contracts/arkanoidBalls'
 import { useOwnedBalls, useMintBall } from '../hooks/useArkanoidBallsContract'
 import './Screen.css'
@@ -23,6 +23,9 @@ export default function BallSelect() {
   const [mintingBallId, setMintingBallId] = useState<number | null>(null)
   const { owned: ownedBallIds, refetch: refetchOwned } = useOwnedBalls()
   const { mint, isPending: mintPending, error: mintError, contractDeployed } = useMintBall(() => {
+    if (mintingBallId !== null) {
+      mintBall(BALL_TYPE_IDS[mintingBallId])
+    }
     refetchOwned()
     setMintingBallId(null)
   })

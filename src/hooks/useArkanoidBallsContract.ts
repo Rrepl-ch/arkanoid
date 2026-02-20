@@ -8,9 +8,21 @@ import {
   BALL_PRICES_WEI,
 } from '../contracts/contracts'
 import { BALLS } from '../ball/ballConfig'
+import { getMintedBallIds } from '../ball/ballStorage'
+import { BALL_TYPE_IDS } from '../contracts/arkanoidBalls'
 
 const CONTRACT_DEPLOYED = ARKANOID_BALLS_ADDRESS !== '0x0000000000000000000000000000000000000000'
 const BALL_COUNT = BALLS.length
+
+function localOwned(): Set<number> {
+  const ids = getMintedBallIds()
+  const set = new Set<number>()
+  for (const id of ids) {
+    const idx = BALL_TYPE_IDS.indexOf(id as (typeof BALL_TYPE_IDS)[number])
+    if (idx >= 0) set.add(idx)
+  }
+  return set
+}
 
 export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refetch: () => void } {
   const { address } = useAccount()
@@ -25,14 +37,17 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
     contracts: CONTRACT_DEPLOYED && address ? contracts : [],
   })
 
-  if (!CONTRACT_DEPLOYED || !address) {
-    return { owned: new Set(), isLoading: false, refetch: () => {} }
+  const owned = new Set(localOwned())
+
+  if (CONTRACT_DEPLOYED && address && data) {
+    const anySuccess = data.some((r) => r.status === 'success')
+    if (anySuccess) {
+      data.forEach((r, i) => {
+        if (r.status === 'success' && r.result === true) owned.add(i)
+      })
+    }
   }
 
-  const owned = new Set<number>()
-  data?.forEach((r, i) => {
-    if (r.status === 'success' && r.result === true) owned.add(i)
-  })
   return { owned, isLoading, refetch }
 }
 
