@@ -44,8 +44,8 @@ forge build
 # Переменная с приватным ключом (без 0x)
 export PRIVATE_KEY=твой_приватный_ключ_64_символа
 
-# ArkanoidBalls (шары: бесплатные + Emerald/Ruby/Gold за ETH)
-forge create --rpc-url https://mainnet.base.org --private-key $PRIVATE_KEY contracts/ArkanoidBalls.sol:ArkanoidBalls
+# ArkanoidBalls (шары: бесплатные + Emerald/Ruby/Gold за ETH). Замени 0xТВОЙ_АДРЕС на кошелёк для приёма платежей.
+forge create --rpc-url https://mainnet.base.org --private-key $PRIVATE_KEY contracts/ArkanoidBalls.sol:ArkanoidBalls --constructor-args 0xТВОЙ_АДРЕС
 
 # ArkanoidGames (Minesweeper, Space Shooter — бесплатный минт)
 forge create --rpc-url https://mainnet.base.org --private-key $PRIVATE_KEY contracts/ArkanoidGames.sol:ArkanoidGames
@@ -59,7 +59,7 @@ forge create --rpc-url https://mainnet.base.org --private-key $PRIVATE_KEY contr
 ```bash
 export PRIVATE_KEY=...
 
-forge create --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY contracts/ArkanoidBalls.sol:ArkanoidBalls
+forge create --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY contracts/ArkanoidBalls.sol:ArkanoidBalls --constructor-args 0xТВОЙ_АДРЕС
 forge create --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY contracts/ArkanoidGames.sol:ArkanoidGames
 forge create --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY contracts/ArkanoidCheckIn.sol:ArkanoidCheckIn
 ```
@@ -74,7 +74,7 @@ forge create --rpc-url https://sepolia.base.org --private-key $PRIVATE_KEY contr
 ```bash
 # Mainnet (нужен API key с basescan.org для --verify)
 forge create --rpc-url https://mainnet.base.org --private-key $PRIVATE_KEY \
-  contracts/ArkanoidBalls.sol:ArkanoidBalls --verify --etherscan-api-key $BASESCAN_API_KEY
+  contracts/ArkanoidBalls.sol:ArkanoidBalls --constructor-args 0xТВОЙ_АДРЕС --verify --etherscan-api-key $BASESCAN_API_KEY
 ```
 
 Аналогично для ArkanoidGames и ArkanoidCheckIn. Для Base Sepolia используй `--chain-id 84532` и API key для Base Sepolia в блокэксплорере.
@@ -125,8 +125,9 @@ npm run build
 ## Кратко по контрактам
 
 ### ArkanoidBalls
+- Конструктор принимает **`_treasury`** (address) — адрес, на который приходят все платежи за платные шары. Укажи его при деплое в Remix или в `forge create` (см. ниже).
 - `mint(uint8 ballType)` — ballType 0–8 бесплатно, 9–11 с оплатой (0.00025 / 0.0005 / 0.001 ETH). Один минт каждого типа на кошелёк.
-- ETH за платные шары получает `owner` (деплоер).
+- ETH за платные шары отправляется на **treasury** (адрес, указанный при деплое).
 
 ### ArkanoidGames
 - `mintMinesweeper()`, `mintSpaceShooter()` — бесплатно, по одному разу на кошелёк.
