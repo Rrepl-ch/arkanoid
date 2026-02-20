@@ -67,15 +67,19 @@ export function getBallTypeId(ballId: string): number | null {
   return i >= 0 ? i : null
 }
 
+export type MintResult = { ok: true; txHash: string } | { ok: false; error: string }
+
 /**
  * Send mint(ballType) tx. Free balls: value 0. Premium: value = price in wei.
  */
 export async function mintBallViaContract(
   provider: EIP1193Provider,
   ballTypeId: number
-): Promise<boolean> {
+): Promise<MintResult> {
   const to = getArkanoidBallsAddress()
-  if (!to || ballTypeId < 0 || ballTypeId >= MAX_BALL_TYPES) return false
+  if (!to || ballTypeId < 0 || ballTypeId >= MAX_BALL_TYPES) {
+    return { ok: false, error: 'Invalid contract or ball type' }
+  }
   const value = PRICES_WEI[ballTypeId] ?? BigInt(0)
   const data = encodeFunctionData({
     abi: BALLS_ABI,
@@ -94,8 +98,25 @@ export async function mintBallViaContract(
         },
       ],
     })
-    return typeof txHash === 'string' && txHash.length > 0
-  } catch {
-    return false
+    if (typeof txHash === 'string' && txHash.length > 0) {
+      return { ok: true, txHash }
+    }
+    return { ok: false, error: 'No transaction hash returned' }
+  } catch (err: unknown) {
+    const msg =
+      err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string'
+        ? (err as { message: string }).message
+        : String(err)
+    if (/reject|denied|cancel|4001|ACTION_REJECTED/i.test(msg)) {
+      return { ok: false, error: 'Transaction cancelled' }
+    }
+    if (/insufficient|funds|balance/i.test(msg)) {
+      return { ok: false, error: 'Insufficient balance for gas or payment' }
+    }
+    if (/network|chain|wrong chain/i.test(msg)) {
+      return { ok: false, error: 'Wrong network. Switch to Base.' }
+    }
+    if (msg.length > 80) return { ok: false, error: msg.slice(0, 80) + '…' }
+    return { ok: false, error: msg || 'Mint failed' }
   }
 }

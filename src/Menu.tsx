@@ -34,12 +34,12 @@ export default function Menu({
     try {
       const provider = await sdk.wallet.getEthereumProvider()
       if (!provider) {
-        setCheckInError('Connect wallet first')
+        setCheckInError('Connect wallet first (open app in Base/Farcaster)')
         return
       }
-      const ok = await checkInViaContract(provider as EIP1193Provider)
-      if (!ok) {
-        setCheckInError('Check-in failed. Try again.')
+      const result = await checkInViaContract(provider as EIP1193Provider)
+      if (!result.ok) {
+        setCheckInError(result.error)
         return
       }
       recordCheckIn()

@@ -26,26 +26,30 @@ export default function GameSelect({
   const handleMintGame = async (gameId: MintableGameId) => {
     setMintError(null)
     const hasContract = !!getArkanoidGamesAddress()
-    if (hasContract) {
-      setMintLoading(gameId)
-      try {
-        const provider = await sdk.wallet.getEthereumProvider()
-        if (provider) {
-          const ok = await mintGameViaContract(provider as EIP1193Provider, gameId)
-          if (!ok) {
-            setMintError('Mint failed. You can try again.')
-            return
-          }
-        }
-      } catch (e) {
-        setMintError(e instanceof Error ? e.message : 'Mint failed')
-        return
-      } finally {
-        setMintLoading(null)
-      }
+    if (!hasContract) {
+      mintGame(gameId)
+      setMintedGameIds((prev) => (prev.includes(gameId) ? prev : [...prev, gameId]))
+      return
     }
-    mintGame(gameId)
-    setMintedGameIds((prev) => (prev.includes(gameId) ? prev : [...prev, gameId]))
+    setMintLoading(gameId)
+    try {
+      const provider = await sdk.wallet.getEthereumProvider()
+      if (!provider) {
+        setMintError('Connect wallet first (open app in Base/Farcaster)')
+        return
+      }
+      const result = await mintGameViaContract(provider as EIP1193Provider, gameId)
+      if (!result.ok) {
+        setMintError(result.error)
+        return
+      }
+      mintGame(gameId)
+      setMintedGameIds((prev) => (prev.includes(gameId) ? prev : [...prev, gameId]))
+    } catch (e) {
+      setMintError(e instanceof Error ? e.message : 'Mint failed')
+    } finally {
+      setMintLoading(null)
+    }
   }
 
   return (

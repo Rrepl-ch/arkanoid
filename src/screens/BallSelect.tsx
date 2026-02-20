@@ -51,9 +51,9 @@ export default function BallSelect() {
         setMintError('Connect wallet first (open app in Base/Farcaster)')
         return
       }
-      const ok = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
-      if (!ok) {
-        setMintError('Mint failed. Try again.')
+      const result = await mintBallViaContract(provider as EIP1193Provider, ballTypeId)
+      if (!result.ok) {
+        setMintError(result.error)
         return
       }
       mintBall(ballId)

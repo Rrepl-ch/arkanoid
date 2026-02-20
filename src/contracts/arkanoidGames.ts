@@ -22,18 +22,31 @@ export function getArkanoidGamesAddress(): string {
   return ARKANOID_GAMES_ADDRESS
 }
 
+export type MintGameResult = { ok: true; txHash: string } | { ok: false; error: string }
+
+function parseTxError(err: unknown): string {
+  const msg =
+    err && typeof err === 'object' && 'message' in err && typeof (err as { message: unknown }).message === 'string'
+      ? (err as { message: string }).message
+      : String(err)
+  if (/reject|denied|cancel|4001|ACTION_REJECTED/i.test(msg)) return 'Transaction cancelled'
+  if (/insufficient|funds|balance/i.test(msg)) return 'Insufficient balance for gas'
+  if (/network|chain|wrong chain/i.test(msg)) return 'Wrong network. Switch to Base.'
+  if (msg.length > 80) return msg.slice(0, 80) + '…'
+  return msg || 'Mint failed'
+}
+
 /**
- * Send mint tx for a game. Returns true if tx was sent and successful.
- * If no contract address or provider, returns false (caller can still do local mint).
+ * Send mint tx for a game. Returns result with txHash or error message.
  */
 export async function mintGameViaContract(
   provider: EIP1193Provider,
   gameId: 'minesweeper' | 'space_shooter'
-): Promise<boolean> {
+): Promise<MintGameResult> {
   const to = getArkanoidGamesAddress()
-  if (!to) return false
+  if (!to) return { ok: false, error: 'Games contract not configured' }
   const data = SELECTORS[gameId]
-  if (!data) return false
+  if (!data) return { ok: false, error: 'Unknown game' }
   try {
     const txHash = await provider.request({
       method: 'eth_sendTransaction',
@@ -41,12 +54,16 @@ export async function mintGameViaContract(
         {
           to,
           data,
-          from: undefined, // let wallet choose
+          value: '0x0',
+          from: undefined,
         },
       ],
     })
-    return typeof txHash === 'string' && txHash.length > 0
-  } catch {
-    return false
+    if (typeof txHash === 'string' && txHash.length > 0) {
+      return { ok: true, txHash }
+    }
+    return { ok: false, error: 'No transaction hash returned' }
+  } catch (err) {
+    return { ok: false, error: parseTxError(err) }
   }
 }
