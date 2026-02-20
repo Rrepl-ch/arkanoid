@@ -20,7 +20,7 @@ export default function GameSelect({
   const minesweeperMinted = mintedGameIds.includes('minesweeper')
   const spaceShooterMinted = mintedGameIds.includes('space_shooter')
 
-  const { mint, isPending, isSuccess, error, contractDeployed } = useMintGameContract()
+  const { mint, isSuccess, error, contractDeployed } = useMintGameContract()
 
   useEffect(() => {
     if (isSuccess && mintingGameId) {

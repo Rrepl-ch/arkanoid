@@ -6,8 +6,9 @@
 const empty = '0x0000000000000000000000000000000000000000' as const
 
 function addr(key: string): `0x${string}` {
-  if (typeof import.meta === 'undefined' || !import.meta.env) return empty as `0x${string}`
-  const v = (import.meta.env as Record<string, string | undefined>)[key]
+  const meta = typeof import.meta !== 'undefined' ? (import.meta as { env?: Record<string, string | undefined> }) : null
+  if (!meta?.env) return empty as `0x${string}`
+  const v = meta.env[key]
   if (typeof v !== 'string' || !v.startsWith('0x') || v.length !== 42) return empty as `0x${string}`
   return v as `0x${string}`
 }
