@@ -1,13 +1,9 @@
 import { useCallback, useRef, useState } from 'react'
 import './Minesweeper.css'
 
-type Mode = 'novice' | 'medium' | 'expert' | 'ultra'
-const MODES: Record<Mode, { rows: number; cols: number; mines: number }> = {
-  novice: { rows: 9, cols: 9, mines: 10 },
-  medium: { rows: 16, cols: 16, mines: 40 },
-  expert: { rows: 16, cols: 30, mines: 99 },
-  ultra: { rows: 24, cols: 40, mines: 200 },
-}
+const ROWS = 16
+const COLS = 16
+const MINES = 40
 
 function buildGrid(rows: number, cols: number, mines: number, safeR: number, safeC: number): number[][] {
   const g: number[][] = Array(rows).fill(null).map(() => Array(cols).fill(0))
@@ -45,8 +41,9 @@ function floodReveal(grid: number[][], rows: number, cols: number, r: number, c:
 }
 
 export default function Minesweeper({ onBack }: { onBack: () => void }) {
-  const [mode, setMode] = useState<Mode>('novice')
-  const { rows, cols, mines } = MODES[mode]
+  const rows = ROWS
+  const cols = COLS
+  const mines = MINES
   const [grid, setGrid] = useState<number[][]>([])
   const [revealed, setRevealed] = useState<boolean[][]>([])
   const [flagged, setFlagged] = useState<boolean[][]>([])
@@ -117,7 +114,7 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
     reveal(r, c)
   }, [reveal])
 
-  const baseCell = mode === 'ultra' ? 14 : mode === 'expert' ? 18 : 28
+  const baseCell = 28
   const maxWidth = typeof window !== 'undefined' ? Math.min(360, window.innerWidth - 32) : 360
   const gridGap = 2
   const cellSize = Math.min(baseCell, Math.floor((maxWidth - (cols - 1) * gridGap) / cols))
@@ -155,19 +152,6 @@ export default function Minesweeper({ onBack }: { onBack: () => void }) {
                 )
               })}
             </div>
-          </div>
-          <p className="minesweeper-menu-label">Difficulty</p>
-          <div className="minesweeper-mode-row">
-            {(['novice', 'medium', 'expert', 'ultra'] as Mode[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                className={`minesweeper-mode-btn ${mode === m ? 'is-active' : ''}`}
-                onClick={() => setMode(m)}
-              >
-                {m === 'novice' ? 'Novice' : m === 'medium' ? 'Medium' : m === 'expert' ? 'Expert' : 'Ultra'}
-              </button>
-            ))}
           </div>
         </div>
       </div>

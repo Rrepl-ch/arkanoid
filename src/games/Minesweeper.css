@@ -1,4 +1,4 @@
-/* Minesweeper start screen (mode selection) */
+/* Minesweeper start screen */
 .minesweeper-menu {
   width: 100%;
   max-width: 360px;
@@ -17,46 +17,6 @@
   text-shadow: 0 0 20px var(--glow);
   margin: 0;
   letter-spacing: 0.04em;
-}
-
-.minesweeper-menu-label {
-  font-size: 0.8rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 8px 0;
-}
-
-.minesweeper-mode-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.minesweeper-mode-btn {
-  font-family: var(--font-ui);
-  font-size: 0.85rem;
-  font-weight: 600;
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
-  background: var(--card);
-  color: var(--text);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-.minesweeper-mode-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.15);
-}
-.minesweeper-mode-btn.is-active {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: rgba(255, 255, 255, 0.35);
-  box-shadow: 0 0 20px var(--glow);
 }
 
 .minesweeper-hint {

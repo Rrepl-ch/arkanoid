@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { getArkanoidStats } from '../stats/arkanoidStats'
 import { getNickname } from '../nicknameStorage'
+import { useMiniApp } from '../providers/MiniAppProvider'
 import {
   ACHIEVEMENT_GROUPS,
   getAchievementsByIds,
@@ -43,12 +44,15 @@ type ProfileProps = {
 
 export default function Profile({ viewAddress = null, onBack, currentUserNickname = null }: ProfileProps = {}) {
   const stats = getArkanoidStats()
+  const { context: miniAppContext } = useMiniApp()
   const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(new Set())
   const isViewingOther = viewAddress != null && viewAddress !== 'current-user'
   const displayStats = isViewingOther ? { gamesPlayed: 0, bestScore: 0, totalScore: 0, maxLevelReached: 0, checkInCount: 0 } : stats
+  const baseUser = !isViewingOther ? miniAppContext?.user : null
   const displayName = isViewingOther
     ? (getNickname(viewAddress!) ?? (viewAddress!.slice(0, 6) + '…' + viewAddress!.slice(-4)))
-    : (currentUserNickname ?? 'Guest')
+    : (baseUser?.displayName ?? baseUser?.username ?? currentUserNickname ?? 'Guest')
+  const avatarUrl = baseUser?.pfpUrl ?? null
 
   const totalUnlocked = ACHIEVEMENT_GROUPS.reduce(
     (sum, g) =>
@@ -78,8 +82,12 @@ export default function Profile({ viewAddress = null, onBack, currentUserNicknam
       </h2>
       <div className="screen-content profile-content">
         <div className="profile-user">
-          <div className="profile-avatar">
-            <span className="profile-avatar-icon">👤</span>
+          <div className={`profile-avatar ${avatarUrl ? 'profile-avatar--pfp' : ''}`}>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="" referrerPolicy="no-referrer" className="profile-avatar-img" />
+            ) : (
+              <span className="profile-avatar-icon">👤</span>
+            )}
           </div>
           <p className="profile-username">{displayName}</p>
           <p className="profile-hint">

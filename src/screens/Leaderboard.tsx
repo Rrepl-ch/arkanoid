@@ -13,9 +13,12 @@ function getPremiumLabel(ballId: string): string | null {
 
 export default function Leaderboard({
   currentUserNickname = null,
+  currentUserAvatar = null,
   onViewProfile,
 }: {
   currentUserNickname?: string | null
+  /** Avatar URL (Farcaster pfp) or emoji string. */
+  currentUserAvatar?: string | null
   onViewProfile?: (address: string) => void
 }) {
   const stats = getArkanoidStats()
@@ -30,6 +33,19 @@ export default function Leaderboard({
 
   const handleRowClick = (address: string) => {
     onViewProfile?.(address)
+  }
+
+  const renderAvatar = (entryAddress: string) => {
+    const isYou = entryAddress === 'current-user'
+    const avatar = isYou ? (currentUserAvatar ?? '👤') : '👤'
+    if (typeof avatar === 'string' && avatar.startsWith('http')) {
+      return (
+        <span className="leaderboard-avatar leaderboard-avatar--pfp">
+          <img src={avatar} alt="" referrerPolicy="no-referrer" className="leaderboard-avatar-img" />
+        </span>
+      )
+    }
+    return <span className="leaderboard-avatar leaderboard-avatar--emoji">{avatar}</span>
   }
 
   return (
@@ -58,6 +74,7 @@ export default function Leaderboard({
                   onKeyDown={onViewProfile ? (e) => e.key === 'Enter' && handleRowClick(entry.address) : undefined}
                 >
                   <span className="leaderboard-rank">{i + 1}</span>
+                  {renderAvatar(entry.address)}
                   <span className="leaderboard-address">{isYou ? (currentUserNickname ?? 'You') : entry.address}</span>
                   <span className="leaderboard-score">{entry.score}</span>
                   {rowLabel && (

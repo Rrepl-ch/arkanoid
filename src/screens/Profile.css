@@ -29,6 +29,18 @@
   margin-bottom: 12px;
 }
 
+.profile-avatar--pfp {
+  overflow: hidden;
+  padding: 0;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .profile-avatar-icon {
   font-size: 2rem;
   opacity: 0.8;

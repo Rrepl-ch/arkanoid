@@ -6,6 +6,7 @@ import Arkanoid from './games/Arkanoid'
 import Minesweeper from './games/Minesweeper'
 import SpaceShooter from './games/SpaceShooter'
 import TabBar, { type TabId } from './components/TabBar'
+import RulesPopup, { getRulesSeen } from './components/RulesPopup'
 import HowToPlay from './screens/HowToPlay'
 import BallSelect from './screens/BallSelect'
 import Leaderboard from './screens/Leaderboard'
@@ -15,6 +16,7 @@ import WalletConnect from './screens/WalletConnect'
 import SetNickname from './screens/SetNickname'
 import ArkanoidHeader from './components/ArkanoidHeader'
 import { useNicknameForAddress } from './hooks/useNicknameForAddress'
+import { useMiniApp } from './providers/MiniAppProvider'
 import { recordCoinbaseConnect } from './stats/arkanoidStats'
 import { hasMintedBall, getSelectedBallId, getMintedBallIds } from './ball/ballStorage'
 import { getBallColor } from './ball/ballConfig'
@@ -29,13 +31,21 @@ const REQUIRE_WALLET = true
 export default function App() {
   const { address, status } = useAccount()
   const { connect, connectors, isPending: connecting, error: connectError } = useConnect()
-  const { nickname, setNickname, needsNickname } = useNicknameForAddress(address ?? undefined)
+  const { context: miniAppContext } = useMiniApp()
+  const { nickname, setNickname } = useNicknameForAddress(address ?? undefined)
+  const baseUser = miniAppContext?.user
+  const effectiveNickname = baseUser
+    ? (baseUser.displayName ?? baseUser.username ?? nickname)
+    : nickname
+  const effectiveAvatar = baseUser?.pfpUrl ?? null
+  const needsNickname = Boolean(address && !effectiveNickname)
   const [game, setGame] = useState<GameId>('menu')
   const [arkanoidStartLevel, setArkanoidStartLevel] = useState(1)
   const [activeTab, setActiveTab] = useState<TabId | null>(null)
   const [profileViewAddress, setProfileViewAddress] = useState<string | null>(null)
   const [mintHintShown, setMintHintShown] = useState(false)
   const [theme, setThemeState] = useState<Theme>(() => getTheme())
+  const [rulesPopupOpen, setRulesPopupOpen] = useState(() => !getRulesSeen())
 
   const setTheme = (t: Theme) => {
     persistTheme(t)
@@ -79,6 +89,9 @@ export default function App() {
 
   return (
     <div className="app">
+      {game === 'menu' && rulesPopupOpen && (
+        <RulesPopup onClose={() => setRulesPopupOpen(false)} />
+      )}
       {game === 'menu' && (
         <>
           <div className="app-main">
@@ -118,11 +131,12 @@ export default function App() {
                 <Profile
                   viewAddress={profileViewAddress}
                   onBack={() => setProfileViewAddress(null)}
-                  currentUserNickname={nickname}
+                  currentUserNickname={effectiveNickname}
                 />
               ) : (
                 <Leaderboard
-                  currentUserNickname={nickname}
+                  currentUserNickname={effectiveNickname}
+                  currentUserAvatar={effectiveAvatar}
                   onViewProfile={(address) => {
                     if (address === 'current-user') setActiveTab('profile')
                     else setProfileViewAddress(address)
@@ -130,7 +144,7 @@ export default function App() {
                 />
               )
             )}
-            {activeTab === 'profile' && profileViewAddress == null && <Profile currentUserNickname={nickname} />}
+            {activeTab === 'profile' && profileViewAddress == null && <Profile currentUserNickname={effectiveNickname} />}
           </div>
           <TabBar
             activeTab={activeTab}

@@ -23,7 +23,7 @@ const LIFE_CHANCE = 0.05
 const MULTIBALL_CHANCE_START = 0.3
 const MULTIBALL_INTERVAL_SEC = 3
 const MULTIBALL_BONUS_PER_STEP = 0.05
-const MULTIBALL_CHANCE_MAX = 0.6
+const MULTIBALL_CHANCE_MAX = 0.35
 
 /** Один бросок: 5% — жизнь, растущий шанс (30%→60%) — растроение, иначе ничего. */
 function rollPowerUp(_level: number, forceHeart?: boolean, elapsedSeconds = 0): PowerUp | undefined {
@@ -179,7 +179,7 @@ export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#fffff
           if (pu.type === 'life') setLives(l => l + 1)
           if (pu.type === 'multiball' && launchedRef.current) {
             const existing = ballsRef.current.slice()
-            const MAX_BALLS = 9
+            const MAX_BALLS = 30
             const newBalls = existing.slice()
             for (const b of existing) {
               if (newBalls.length >= MAX_BALLS) break

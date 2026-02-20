@@ -188,7 +188,7 @@ const LEVEL_GENERATORS: ((rows: number) => number[][])[] = [
   () => checkerboard(7),
   () => oval(6),
   () => fullRows(7),
-  () => fullRows(8),
+  (rows) => fullRows(rows),
 ]
 
 export const MAX_LEVEL = LEVEL_GENERATORS.length
@@ -202,7 +202,7 @@ function clampRows(level: number): number {
  */
 export function getLevelPattern(level: number): number[][] {
   const oneBased = Math.max(1, Math.min(level, MAX_LEVEL))
-  const rows = clampRows(oneBased)
+  const rows = oneBased === MAX_LEVEL ? 13 : clampRows(oneBased)
   const gen = LEVEL_GENERATORS[oneBased - 1]
   const grid = gen(rows)
   if (grid.flat().every((v) => v === -1)) return fullRows(rows)
