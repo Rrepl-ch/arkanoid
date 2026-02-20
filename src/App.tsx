@@ -105,7 +105,7 @@ export default function App() {
                   theme={theme}
                   setTheme={setTheme}
                   onSelect={(id) => {
-                    if (id === 'arkanoid-levels' && !hasMintedBall()) {
+                    if (id === 'arkanoid-levels' && !hasMintedBall) {
                       setActiveTab('ball')
                       setMintHintShown(true)
                       return
@@ -186,7 +186,7 @@ export default function App() {
         <GameSelect
           onBack={() => setGame('menu')}
           onSelect={(action) => {
-            if (action === 'arkanoid-levels' && !hasMintedBall()) {
+            if (action === 'arkanoid-levels' && !hasMintedBall) {
               setGame('menu')
               setActiveTab('ball')
               setMintHintShown(true)
