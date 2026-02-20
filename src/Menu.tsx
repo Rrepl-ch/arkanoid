@@ -2,6 +2,7 @@ import type { GameId } from './App'
 import type { Theme } from './theme/themeStorage'
 import { getArkanoidStats, recordCheckIn } from './stats/arkanoidStats'
 import { useCheckInContract } from './hooks/useCheckInContract'
+import { useAccount } from 'wagmi'
 import ArkanoidHeader from './components/ArkanoidHeader'
 import './Menu.css'
 
@@ -16,13 +17,15 @@ export default function Menu({
   onSelect: (g: GameId) => void
   onGamesClick: () => void
 }) {
+  const { address } = useAccount()
   const stats = getArkanoidStats()
   const hasStats = stats.totalScore > 0 || stats.maxLevelReached > 0
-  const { checkIn, isPending: checkInPending, error: checkInError, contractDeployed: checkInDeployed } = useCheckInContract(recordCheckIn)
+  const { checkIn, isPending: checkInPending, error: checkInError, contractDeployed: checkInDeployed } =
+    useCheckInContract(() => recordCheckIn(address))
 
   const handleCheckIn = () => {
     if (!checkInDeployed) {
-      recordCheckIn()
+      recordCheckIn(address)
       return
     }
     checkIn()

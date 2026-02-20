@@ -1,5 +1,6 @@
-import { getArkanoidStats } from '../stats/arkanoidStats'
+import { useEffect, useState } from 'react'
 import { getSelectedBallId } from '../ball/ballStorage'
+import { fetchLeaderboard, type LeaderboardEntry } from '../stats/statsApi'
 import './Screen.css'
 import './Leaderboard.css'
 
@@ -12,32 +13,40 @@ function getPremiumLabel(ballId: string): string | null {
 }
 
 export default function Leaderboard({
+  currentAddress = null,
   currentUserNickname = null,
   currentUserAvatar = null,
   onViewProfile,
 }: {
+  currentAddress?: string | null
   currentUserNickname?: string | null
   /** Avatar URL (Farcaster pfp) or emoji string. */
   currentUserAvatar?: string | null
   onViewProfile?: (address: string) => void
 }) {
-  const stats = getArkanoidStats()
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const selectedBallId = getSelectedBallId()
   const isPremiumSelected = PREMIUM_BALL_IDS.includes(selectedBallId as PremiumBallId)
   const premiumClass = isPremiumSelected ? `leaderboard-row--${selectedBallId}` : ''
   const premiumLabel = getPremiumLabel(selectedBallId)
 
-  const entries = [
-    ...(stats.totalScore > 0 ? [{ address: 'current-user', score: stats.totalScore }] : []),
-  ]
+  useEffect(() => {
+    let cancelled = false
+    fetchLeaderboard(20).then((list) => {
+      if (!cancelled) setEntries(list)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const handleRowClick = (address: string) => {
     onViewProfile?.(address)
   }
 
-  const renderAvatar = (entryAddress: string) => {
-    const isYou = entryAddress === 'current-user'
-    const avatar = isYou ? (currentUserAvatar ?? '👤') : '👤'
+  const renderAvatar = (entryAddress: string, rowAvatar?: string | null) => {
+    const isYou = !!currentAddress && entryAddress.toLowerCase() === currentAddress.toLowerCase()
+    const avatar = isYou ? (currentUserAvatar ?? rowAvatar ?? '👤') : (rowAvatar ?? '👤')
     if (typeof avatar === 'string' && avatar.startsWith('http')) {
       return (
         <span className="leaderboard-avatar leaderboard-avatar--pfp">
@@ -52,7 +61,7 @@ export default function Leaderboard({
     <div className="screen screen--leaderboard">
       <h2 className="screen-title">Leaderboard</h2>
       <div className="screen-content leaderboard-content">
-        <p className="screen-muted">On-chain leaderboard coming soon. Your total scores will be saved on Base.</p>
+        <p className="screen-muted">Global leaderboard (Redis).</p>
         {entries.length === 0 ? (
           <div className="leaderboard-placeholder">
             <span className="leaderboard-icon">🏆</span>
@@ -61,7 +70,7 @@ export default function Leaderboard({
         ) : (
           <ul className="leaderboard-list">
             {entries.map((entry, i) => {
-              const isYou = entry.address === 'current-user'
+              const isYou = !!currentAddress && entry.address.toLowerCase() === currentAddress.toLowerCase()
               const rowPremiumClass = isYou ? premiumClass : ''
               const rowLabel = isYou && premiumLabel ? premiumLabel : null
               return (
@@ -74,8 +83,8 @@ export default function Leaderboard({
                   onKeyDown={onViewProfile ? (e) => e.key === 'Enter' && handleRowClick(entry.address) : undefined}
                 >
                   <span className="leaderboard-rank">{i + 1}</span>
-                  {renderAvatar(entry.address)}
-                  <span className="leaderboard-address">{isYou ? (currentUserNickname ?? 'You') : entry.address}</span>
+                  {renderAvatar(entry.address, entry.avatar)}
+                  <span className="leaderboard-address">{isYou ? (currentUserNickname ?? entry.nickname ?? 'You') : (entry.nickname ?? entry.address)}</span>
                   <span className="leaderboard-score">{entry.score}</span>
                   {rowLabel && (
                     <span className={`leaderboard-premium-label leaderboard-premium-label--${selectedBallId}`}>

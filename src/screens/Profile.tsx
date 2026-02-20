@@ -1,7 +1,8 @@
-import { useState } from 'react'
-import { getArkanoidStats } from '../stats/arkanoidStats'
+import { useEffect, useState } from 'react'
+import { getArkanoidStats, type ArkanoidStats } from '../stats/arkanoidStats'
 import { getNickname } from '../nicknameStorage'
 import { useMiniApp } from '../providers/MiniAppProvider'
+import { fetchProfileStats } from '../stats/statsApi'
 import {
   ACHIEVEMENT_GROUPS,
   getAchievementsByIds,
@@ -37,26 +38,57 @@ function AchievementSubrow({ ach, progress }: { ach: AchievementDef; progress: A
 type ProfileProps = {
   /** When set, show as "view profile" with Back button (e.g. from leaderboard). */
   viewAddress?: string | null
+  currentAddress?: string | null
   onBack?: () => void
   /** Ник текущего пользователя (для своего профиля). */
   currentUserNickname?: string | null
 }
 
-export default function Profile({ viewAddress = null, onBack, currentUserNickname = null }: ProfileProps = {}) {
-  const stats = getArkanoidStats()
+function mergeStats(local: ArkanoidStats, remote: ArkanoidStats | null): ArkanoidStats {
+  if (!remote) return local
+  return {
+    gamesPlayed: Math.max(local.gamesPlayed, remote.gamesPlayed),
+    bestScore: Math.max(local.bestScore, remote.bestScore),
+    totalScore: Math.max(local.totalScore, remote.totalScore),
+    maxLevelReached: Math.max(local.maxLevelReached, remote.maxLevelReached),
+    checkInCount: Math.max(local.checkInCount, remote.checkInCount),
+    connectedWithCoinbaseAt: local.connectedWithCoinbaseAt ?? remote.connectedWithCoinbaseAt,
+  }
+}
+
+const EMPTY_STATS: ArkanoidStats = { gamesPlayed: 0, bestScore: 0, totalScore: 0, maxLevelReached: 0, checkInCount: 0 }
+
+export default function Profile({ viewAddress = null, currentAddress = null, onBack, currentUserNickname = null }: ProfileProps = {}) {
+  const localStats = getArkanoidStats()
+  const [serverStats, setServerStats] = useState<ArkanoidStats | null>(null)
   const { context: miniAppContext } = useMiniApp()
   const [expandedGroupIds, setExpandedGroupIds] = useState<Set<string>>(new Set())
   const isViewingOther = viewAddress != null && viewAddress !== 'current-user'
-  const displayStats = isViewingOther ? { gamesPlayed: 0, bestScore: 0, totalScore: 0, maxLevelReached: 0, checkInCount: 0 } : stats
+  const targetAddress = isViewingOther ? viewAddress : currentAddress
+  const displayStats = isViewingOther ? (serverStats ?? EMPTY_STATS) : mergeStats(localStats, serverStats)
   const baseUser = !isViewingOther ? miniAppContext?.user : null
   const displayName = isViewingOther
     ? (getNickname(viewAddress!) ?? (viewAddress!.slice(0, 6) + '…' + viewAddress!.slice(-4)))
     : (baseUser?.displayName ?? baseUser?.username ?? currentUserNickname ?? 'Guest')
   const avatarUrl = baseUser?.pfpUrl ?? null
 
+  useEffect(() => {
+    let cancelled = false
+    if (!targetAddress || !/^0x[a-f0-9]{40}$/i.test(targetAddress)) {
+      setServerStats(null)
+      return
+    }
+    fetchProfileStats(targetAddress).then((s) => {
+      if (!cancelled) setServerStats(s)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [targetAddress])
+
   const totalUnlocked = ACHIEVEMENT_GROUPS.reduce(
     (sum, g) =>
-      sum + getAchievementsByIds(g.achievementIds).filter((a) => a.check(stats)).length,
+      sum + getAchievementsByIds(g.achievementIds).filter((a) => a.check(displayStats)).length,
     0
   )
   const totalCount = ACHIEVEMENT_GROUPS.reduce((sum, g) => sum + g.achievementIds.length, 0)
@@ -125,7 +157,7 @@ export default function Profile({ viewAddress = null, onBack, currentUserNicknam
           <div className="profile-achievement-groups">
               {!isViewingOther && ACHIEVEMENT_GROUPS.map((group) => {
                 const groupAchs = getAchievementsByIds(group.achievementIds)
-                const unlockedInGroup = groupAchs.filter((a) => a.check(stats)).length
+                const unlockedInGroup = groupAchs.filter((a) => a.check(displayStats)).length
                 const allUnlocked = unlockedInGroup === group.achievementIds.length
                 const expanded = expandedGroupIds.has(group.id)
 
@@ -158,7 +190,7 @@ export default function Profile({ viewAddress = null, onBack, currentUserNicknam
                           <AchievementSubrow
                             key={ach.id}
                             ach={ach}
-                            progress={getAchievementProgress(ach, stats)}
+                            progress={getAchievementProgress(ach, displayStats)}
                           />
                         ))}
                       </div>

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAccount } from 'wagmi'
 import { useWindowSize, useCanvasMouse } from '../hooks/useFullscreenCanvas'
 import { recordArkanoidGameEnd, recordArkanoidProgress } from '../stats/arkanoidStats'
 import { getLevelPattern, MAX_LEVEL } from './arkanoidLevels'
+import { getNickname } from '../nicknameStorage'
 
 const PADDLE_H = 14
 const BALL_R = 8
@@ -37,6 +39,8 @@ function rollPowerUp(_level: number, forceHeart?: boolean, elapsedSeconds = 0): 
 }
 
 export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#ffffff' }: { onBack: () => void; initialLevel?: number; ballColor?: string }) {
+  const { address } = useAccount()
+  const nickname = address ? getNickname(address) : null
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { w: W, h: H } = useWindowSize()
   const [restartKey, setRestartKey] = useState(0)
@@ -242,9 +246,9 @@ export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#fffff
   useEffect(() => {
     if (gameOver && !gameOverRecordedRef.current) {
       gameOverRecordedRef.current = true
-      recordArkanoidGameEnd(score, level)
+      recordArkanoidGameEnd(score, level, { address: address ?? undefined, nickname })
     }
-  }, [gameOver, score, level])
+  }, [gameOver, score, level, address, nickname])
 
   if (gameOver) {
     return (
@@ -291,7 +295,7 @@ export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#fffff
               type="button"
               className="level-complete-btn level-complete-btn--primary"
               onClick={() => {
-                recordArkanoidProgress(score, level)
+                recordArkanoidProgress(score, level, address ?? undefined)
                 levelCompleteShownRef.current = false
                 setLevelComplete(false)
                 setLevel(l => Math.min(l + 1, MAX_LEVEL))
@@ -314,7 +318,7 @@ export default function Arkanoid({ onBack, initialLevel = 1, ballColor = '#fffff
               type="button"
               className="level-complete-btn secondary"
               onClick={() => {
-                recordArkanoidGameEnd(score, level)
+                recordArkanoidGameEnd(score, level, { address: address ?? undefined, nickname })
                 onBack()
               }}
             >

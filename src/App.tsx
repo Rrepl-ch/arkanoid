@@ -57,7 +57,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (address) recordCoinbaseConnect()
+    if (address) recordCoinbaseConnect(address)
   }, [address])
 
   const loading = status === 'reconnecting'
@@ -134,11 +134,13 @@ export default function App() {
               profileViewAddress != null ? (
                 <Profile
                   viewAddress={profileViewAddress}
+                  currentAddress={address ?? null}
                   onBack={() => setProfileViewAddress(null)}
                   currentUserNickname={effectiveNickname}
                 />
               ) : (
                 <Leaderboard
+                  currentAddress={address ?? null}
                   currentUserNickname={effectiveNickname}
                   currentUserAvatar={effectiveAvatar}
                   onViewProfile={(address) => {
@@ -148,7 +150,9 @@ export default function App() {
                 />
               )
             )}
-            {activeTab === 'profile' && profileViewAddress == null && <Profile currentUserNickname={effectiveNickname} />}
+            {activeTab === 'profile' && profileViewAddress == null && (
+              <Profile currentAddress={address ?? null} currentUserNickname={effectiveNickname} />
+            )}
           </div>
           <TabBar
             activeTab={activeTab}
