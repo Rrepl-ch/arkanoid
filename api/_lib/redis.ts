@@ -1,137 +1,174 @@
-import Redis from 'ioredis'
+import { createConnection } from 'net'
 
 type Primitive = string | number
 type Command = [string, ...Primitive[]]
 
 const REDIS_URL = process.env.REDIS_URL
 
-/* ── In-memory fallback (used when REDIS_URL is not set) ── */
+/* ── Parse redis:// URL ── */
 
-type MemoryStore = {
-  kv: Map<string, string>
-  zset: Map<string, Map<string, number>>
-}
-
-function getMemoryStore(): MemoryStore {
-  const g = globalThis as unknown as { __retroRedisMemory?: MemoryStore }
-  if (!g.__retroRedisMemory) {
-    g.__retroRedisMemory = {
-      kv: new Map<string, string>(),
-      zset: new Map<string, Map<string, number>>(),
-    }
+function parseRedisUrl(url: string): { host: string; port: number; password?: string } {
+  const u = new URL(url)
+  return {
+    host: u.hostname,
+    port: parseInt(u.port, 10) || 6379,
+    password: u.password ? decodeURIComponent(u.password) : undefined,
   }
-  return g.__retroRedisMemory
 }
 
-function asString(v: Primitive): string {
-  return typeof v === 'number' ? String(v) : v
+/* ── RESP protocol encode/decode ── */
+
+function encode(args: string[]): string {
+  let s = `*${args.length}\r\n`
+  for (const a of args) {
+    s += `$${Buffer.byteLength(a, 'utf8')}\r\n${a}\r\n`
+  }
+  return s
 }
 
-function memoryExec(cmd: Command): unknown {
-  const store = getMemoryStore()
+function decode(buf: string, pos: number): [unknown, number] {
+  const crlf = buf.indexOf('\r\n', pos)
+  if (crlf === -1) throw new Error('incomplete')
+  const line = buf.slice(pos + 1, crlf)
+  const next = crlf + 2
+
+  switch (buf[pos]) {
+    case '+': return [line, next]
+    case '-': return [null, next]
+    case ':': return [parseInt(line, 10), next]
+    case '$': {
+      const len = parseInt(line, 10)
+      if (len === -1) return [null, next]
+      const end = next + len
+      if (buf.length < end + 2) throw new Error('incomplete')
+      return [buf.slice(next, end), end + 2]
+    }
+    case '*': {
+      const count = parseInt(line, 10)
+      if (count === -1) return [null, next]
+      let p = next
+      const arr: unknown[] = []
+      for (let i = 0; i < count; i++) {
+        const [val, np] = decode(buf, p)
+        arr.push(val)
+        p = np
+      }
+      return [arr, p]
+    }
+    default: throw new Error(`Unknown RESP type: ${buf[pos]}`)
+  }
+}
+
+/* ── Raw TCP Redis execution ── */
+
+function rawExec(commands: Command[]): Promise<unknown[]> {
+  const config = parseRedisUrl(REDIS_URL!)
+  return new Promise((resolve, reject) => {
+    const sock = createConnection({ host: config.host, port: config.port })
+    sock.setTimeout(5000)
+
+    let payload = ''
+    if (config.password) payload += encode(['AUTH', config.password])
+    for (const cmd of commands) payload += encode(cmd.map(String))
+
+    const expected = (config.password ? 1 : 0) + commands.length
+    const results: unknown[] = []
+    let buf = ''
+    let done = false
+
+    function finish(err?: Error) {
+      if (done) return
+      done = true
+      sock.destroy()
+      if (err) return reject(err)
+      resolve(results.slice(config.password ? 1 : 0))
+    }
+
+    function tryParse() {
+      let pos = 0
+      const saved = results.length
+      try {
+        while (results.length < expected) {
+          const [val, next] = decode(buf, pos)
+          results.push(val)
+          pos = next
+        }
+        buf = buf.slice(pos)
+        finish()
+      } catch {
+        results.length = saved
+      }
+    }
+
+    sock.on('data', (chunk) => { buf += chunk.toString('utf8'); tryParse() })
+    sock.on('error', (e) => finish(e))
+    sock.on('timeout', () => finish(new Error('Redis timeout')))
+    sock.on('end', () => { if (!done) tryParse(); if (!done) finish(new Error('Connection closed')) })
+    sock.write(payload)
+  })
+}
+
+/* ── In-memory fallback ── */
+
+type MemoryStore = { kv: Map<string, string>; zset: Map<string, Map<string, number>> }
+
+function mem(): MemoryStore {
+  const g = globalThis as unknown as { __rm?: MemoryStore }
+  if (!g.__rm) g.__rm = { kv: new Map(), zset: new Map() }
+  return g.__rm
+}
+
+function s(v: Primitive): string { return String(v) }
+
+function memExec(cmd: Command): unknown {
+  const m = mem()
   const op = cmd[0].toUpperCase()
 
-  if (op === 'GET') {
-    return store.kv.get(asString(cmd[1] ?? '')) ?? null
-  }
-  if (op === 'SET') {
-    store.kv.set(asString(cmd[1] ?? ''), asString(cmd[2] ?? ''))
-    return 'OK'
-  }
+  if (op === 'GET') return m.kv.get(s(cmd[1])) ?? null
+  if (op === 'SET') { m.kv.set(s(cmd[1]), s(cmd[2])); return 'OK' }
   if (op === 'DEL') {
-    let removed = 0
-    for (const key of cmd.slice(1).map(asString)) {
-      if (store.kv.delete(key)) removed++
-    }
-    return removed
+    let r = 0; for (let i = 1; i < cmd.length; i++) if (m.kv.delete(s(cmd[i]))) r++; return r
   }
-  if (op === 'MGET') {
-    return cmd.slice(1).map(asString).map((k) => store.kv.get(k) ?? null)
-  }
+  if (op === 'MGET') return cmd.slice(1).map((k) => m.kv.get(s(k)) ?? null)
   if (op === 'ZSCORE') {
-    const z = store.zset.get(asString(cmd[1] ?? ''))
-    const score = z?.get(asString(cmd[2] ?? ''))
-    return score == null ? null : String(score)
+    const sc = m.zset.get(s(cmd[1]))?.get(s(cmd[2])); return sc == null ? null : String(sc)
   }
   if (op === 'ZADD') {
-    const key = asString(cmd[1] ?? '')
-    const score = Number(cmd[2] ?? 0)
-    const member = asString(cmd[3] ?? '')
-    let z = store.zset.get(key)
-    if (!z) {
-      z = new Map<string, number>()
-      store.zset.set(key, z)
-    }
-    z.set(member, score)
-    return 1
+    let z = m.zset.get(s(cmd[1]))
+    if (!z) { z = new Map(); m.zset.set(s(cmd[1]), z) }
+    z.set(s(cmd[3]), Number(cmd[2])); return 1
   }
   if (op === 'ZREVRANGE') {
-    const key = asString(cmd[1] ?? '')
-    const start = Number(cmd[2] ?? 0)
-    const stop = Number(cmd[3] ?? -1)
-    const withScores = String(cmd[4] ?? '').toUpperCase() === 'WITHSCORES'
-    const z = store.zset.get(key)
-    if (!z) return []
+    const z = m.zset.get(s(cmd[1])); if (!z) return []
     const entries = [...z.entries()].sort((a, b) => b[1] - a[1])
+    const start = Number(cmd[2]), stop = Number(cmd[3])
     const end = stop >= 0 ? stop + 1 : entries.length
     const slice = entries.slice(start, end)
-    if (!withScores) return slice.map(([member]) => member)
+    if (String(cmd[4] ?? '').toUpperCase() !== 'WITHSCORES') return slice.map(([m]) => m)
     const flat: string[] = []
-    for (const [member, score] of slice) {
-      flat.push(member, String(score))
-    }
+    for (const [member, score] of slice) flat.push(member, String(score))
     return flat
   }
-
-  throw new Error(`Unsupported memory Redis command: ${op}`)
+  return null
 }
 
-/* ── ioredis: connect → execute → disconnect (like crazy-racer) ── */
-
-async function withRedis<T>(fn: (client: Redis) => Promise<T>): Promise<T> {
-  if (!REDIS_URL) throw new Error('REDIS_URL not set')
-  const client = new Redis(REDIS_URL, {
-    connectTimeout: 5000,
-    maxRetriesPerRequest: 0,
-    retryStrategy: () => null,
-    enableOfflineQueue: false,
-  })
-  try {
-    return await fn(client)
-  } finally {
-    client.disconnect()
-  }
-}
+/* ── Public API ── */
 
 export async function redisExec(command: Command): Promise<unknown> {
-  if (!REDIS_URL) return memoryExec(command)
+  if (!REDIS_URL) return memExec(command)
   try {
-    return await withRedis(async (client) => {
-      const args = command.map(String)
-      return client.call(args[0], ...args.slice(1))
-    })
+    const [result] = await rawExec([command])
+    return result
   } catch {
-    return memoryExec(command)
+    return memExec(command)
   }
 }
 
 export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
-  if (!REDIS_URL) return commands.map((cmd) => memoryExec(cmd))
+  if (!REDIS_URL) return commands.map(memExec)
   try {
-    return await withRedis(async (client) => {
-      const p = client.pipeline()
-      for (const cmd of commands) {
-        const args = cmd.map(String)
-        p.call(args[0], ...args.slice(1))
-      }
-      const results = await p.exec()
-      if (!results) return commands.map((cmd) => memoryExec(cmd))
-      return results.map(([err, val]) => {
-        if (err) throw err
-        return val
-      })
-    })
+    return await rawExec(commands)
   } catch {
-    return commands.map((cmd) => memoryExec(cmd))
+    return commands.map(memExec)
   }
 }
