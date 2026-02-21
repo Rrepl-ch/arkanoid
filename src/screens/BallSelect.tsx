@@ -22,10 +22,14 @@ export default function BallSelect() {
   const [selectedBallId, setSelectedBallIdState] = useState(getSelectedIndex)
   const [mintingBallId, setMintingBallId] = useState<number | null>(null)
   const { owned: ownedBallIds, refetch: refetchOwned } = useOwnedBalls()
-  const { mint, isPending: mintPending, error: mintError, contractDeployed } = useMintBall(() => {
+  const [extraOwned, setExtraOwned] = useState<Set<number>>(new Set())
+  const { mint, isPending: mintPending, error: mintError, contractDeployed } = useMintBall((ballId) => {
+    setExtraOwned(prev => { const n = new Set(prev); n.add(ballId); return n })
     refetchOwned()
     setMintingBallId(null)
   })
+
+  const mergedOwned = new Set([...ownedBallIds, ...extraOwned])
 
   const handleMint = useCallback(
     (index: number) => {
@@ -44,10 +48,10 @@ export default function BallSelect() {
   )
 
   const handleSelect = useCallback((index: number) => {
-    if (!ownedBallIds.has(index)) return
+    if (!mergedOwned.has(index)) return
     setSelectedBallIdState(index)
     setSelectedBallId(BALL_TYPE_IDS[index])
-  }, [ownedBallIds])
+  }, [mergedOwned])
 
   const mintErrorMsg = mintError?.message ?? null
   const loadingBallId = mintPending ? mintingBallId : null
@@ -68,7 +72,7 @@ export default function BallSelect() {
       )}
       <div className="screen-content ball-grid">
         {BALLS.map((b, i) => {
-          const isMinted = ownedBallIds.has(i)
+          const isMinted = mergedOwned.has(i)
           const isSelected = selectedBallId === i
           const isLoading = loadingBallId === i
           const priceEth = getBallPriceEth(b.id)
