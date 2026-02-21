@@ -7,8 +7,8 @@ import { getNickname } from '../nicknameStorage'
 
 const PADDLE_H = 14
 const BALL_R = 8
-/** Ball base speed (2x then 1.5x slower than original 5). */
-const BALL_SPEED = 2.5 / 1.5
+/** Ball base speed (+50% vs previous value). */
+const BALL_SPEED = 2.5
 
 /** Layout под телефон (Base wallet): 8 колонок, крупные кирпичи. */
 const COLS = 8
