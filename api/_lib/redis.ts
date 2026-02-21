@@ -1,4 +1,4 @@
-import { createClient } from 'redis'
+import Redis from 'ioredis'
 
 type Primitive = string | number
 type Command = [string, ...Primitive[]]
@@ -86,25 +86,29 @@ function memoryExec(cmd: Command): unknown {
   throw new Error(`Unsupported memory Redis command: ${op}`)
 }
 
-/* ── Redis TCP client (same pattern as crazy-racer) ── */
+/* ── ioredis client ── */
 
-async function withRedis<T>(fn: (client: ReturnType<typeof createClient>) => Promise<T>): Promise<T> {
+let _client: Redis | null = null
+
+function getClient(): Redis {
   if (!REDIS_URL) throw new Error('REDIS_URL not set')
-  const client = createClient({ url: REDIS_URL })
-  await client.connect()
-  try {
-    return await fn(client)
-  } finally {
-    await client.quit()
+  if (!_client) {
+    _client = new Redis(REDIS_URL, {
+      maxRetriesPerRequest: 1,
+      connectTimeout: 5000,
+      lazyConnect: true,
+    })
+    _client.on('error', () => {})
   }
+  return _client
 }
 
 export async function redisExec(command: Command): Promise<unknown> {
   if (!REDIS_URL) return memoryExec(command)
   try {
-    return await withRedis(async (client) => {
-      return client.sendCommand(command.map(String))
-    })
+    const client = getClient()
+    const args = command.map(String)
+    return await client.call(args[0], ...args.slice(1))
   } catch {
     return memoryExec(command)
   }
@@ -113,12 +117,17 @@ export async function redisExec(command: Command): Promise<unknown> {
 export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
   if (!REDIS_URL) return commands.map((cmd) => memoryExec(cmd))
   try {
-    return await withRedis(async (client) => {
-      const multi = client.multi()
-      for (const cmd of commands) {
-        multi.addCommand(cmd.map(String))
-      }
-      return multi.exec()
+    const client = getClient()
+    const p = client.pipeline()
+    for (const cmd of commands) {
+      const args = cmd.map(String)
+      p.call(args[0], ...args.slice(1))
+    }
+    const results = await p.exec()
+    if (!results) return commands.map((cmd) => memoryExec(cmd))
+    return results.map(([err, val]) => {
+      if (err) throw err
+      return val
     })
   } catch {
     return commands.map((cmd) => memoryExec(cmd))
