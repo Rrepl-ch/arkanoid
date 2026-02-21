@@ -17,7 +17,7 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
   const contracts = Array.from({ length: BALL_COUNT }, (_, i) => ({
     address: ARKANOID_BALLS_ADDRESS,
     abi: ARKANOID_BALLS_ABI,
-    functionName: 'hasBall' as const,
+    functionName: 'hasMinted' as const,
     args: [address!, i] as const,
   }))
 
