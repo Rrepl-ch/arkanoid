@@ -1,0 +1,84 @@
+.rules-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  animation: rules-popup-fade 0.2s ease-out;
+}
+
+@keyframes rules-popup-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.rules-popup {
+  width: 100%;
+  max-width: 360px;
+  max-height: 85vh;
+  overflow: auto;
+  padding: 24px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: rules-popup-scale 0.25s ease-out;
+}
+
+@keyframes rules-popup-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rules-popup-title {
+  font-family: var(--font-arcade);
+  font-size: 1.25rem;
+  color: var(--accent);
+  margin: 0 0 16px 0;
+}
+
+.rules-popup-content {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.rules-popup-content p {
+  margin: 0 0 12px 0;
+}
+
+.rules-popup-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rules-popup-btn {
+  width: 100%;
+  padding: 14px 24px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: var(--accent);
+  color: var(--bg);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.rules-popup-btn:hover {
+  box-shadow: 0 0 20px var(--glow);
+}

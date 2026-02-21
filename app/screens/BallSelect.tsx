@@ -1,0 +1,111 @@
+import { useState, useCallback } from 'react'
+import { useAccount } from 'wagmi'
+import { BALLS, getBallPriceEth } from '../lib/ballConfig'
+import { setSelectedBallId } from '../lib/ballStorage'
+import { BALL_TYPE_IDS } from '../lib/arkanoidBalls'
+import { useOwnedBalls, useMintBall } from '../lib/useArkanoidBallsContract'
+import './Screen.css'
+import './BallSelect.css'
+
+function getSelectedIndex(): number {
+  try {
+    const id = localStorage.getItem('arkanoid-selected-ball') || 'classic'
+    const i = BALL_TYPE_IDS.indexOf(id as (typeof BALL_TYPE_IDS)[number])
+    return i >= 0 ? i : 0
+  } catch {
+    return 0
+  }
+}
+
+export default function BallSelect() {
+  const { address } = useAccount()
+  const [selectedBallId, setSelectedBallIdState] = useState(getSelectedIndex)
+  const [mintingBallId, setMintingBallId] = useState<number | null>(null)
+  const { owned: ownedBallIds, refetch: refetchOwned } = useOwnedBalls()
+  const [extraOwned, setExtraOwned] = useState<Set<number>>(new Set())
+  const { mint, isPending: mintPending, error: mintError, contractDeployed } = useMintBall((ballId) => {
+    setExtraOwned(prev => { const n = new Set(prev); n.add(ballId); return n })
+    refetchOwned()
+    setMintingBallId(null)
+  })
+
+  const mergedOwned = new Set([...ownedBallIds, ...extraOwned])
+
+  const handleMint = useCallback(
+    (index: number) => {
+      if (!address) {
+        alert('Connect wallet to mint')
+        return
+      }
+      if (!contractDeployed) {
+        alert('Ball contract not configured. Set NEXT_PUBLIC_ARKANOID_BALLS_ADDRESS in .env and rebuild.')
+        return
+      }
+      setMintingBallId(index)
+      mint(index)
+    },
+    [address, contractDeployed, mint]
+  )
+
+  const handleSelect = useCallback((index: number) => {
+    if (!mergedOwned.has(index)) return
+    setSelectedBallIdState(index)
+    setSelectedBallId(BALL_TYPE_IDS[index])
+  }, [mergedOwned])
+
+  const mintErrorMsg = mintError?.message ?? null
+  const loadingBallId = mintPending ? mintingBallId : null
+
+  return (
+    <div className="screen screen--ball">
+      <h2 className="screen-title">Ball</h2>
+      <p className="screen-subtitle">Mint a ball to play. Choose your minted ball.</p>
+      {!contractDeployed && (
+        <p className="ball-select-error" role="alert">
+          Ball contract not configured. Set NEXT_PUBLIC_ARKANOID_BALLS_ADDRESS in .env and rebuild.
+        </p>
+      )}
+      {contractDeployed && mintErrorMsg && (
+        <p className="ball-select-error" role="alert">
+          {mintErrorMsg}
+        </p>
+      )}
+      <div className="screen-content ball-grid">
+        {BALLS.map((b, i) => {
+          const isMinted = mergedOwned.has(i)
+          const isSelected = selectedBallId === i
+          const isLoading = loadingBallId === i
+          const priceEth = getBallPriceEth(b.id)
+          return (
+            <div
+              key={b.id}
+              className={`ball-option ${!isMinted ? 'ball-option--locked' : ''} ${isSelected ? 'ball-option--active' : ''} ${b.id === 'gold' ? 'ball-option--golden' : ''} ${b.id === 'green' ? 'ball-option--emerald' : ''} ${b.id === 'red' ? 'ball-option--ruby' : ''} ${priceEth ? 'ball-option--premium' : ''}`}
+            >
+              <span className="ball-preview" style={{ background: b.color }} />
+              <span className="ball-name">{b.name}</span>
+              {!isMinted ? (
+                <button
+                  type="button"
+                  className="ball-mint-btn"
+                  disabled={!contractDeployed || !!loadingBallId}
+                  onClick={() => handleMint(i)}
+                >
+                  {isLoading ? 'Minting…' : priceEth ? `Mint ${priceEth} ETH` : 'Mint (free)'}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="ball-select-btn"
+                  onClick={() => handleSelect(i)}
+                  disabled={isSelected}
+                >
+                  {isSelected ? 'Selected' : 'Select'}
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,75 @@
+.wallet-connect {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.wallet-connect-title {
+  font-family: var(--font-arcade);
+  font-size: clamp(0.75rem, 3.5vw, 0.95rem);
+  color: var(--accent);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.wallet-connect-subtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+.wallet-connect-error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-bottom: 16px;
+}
+
+.wallet-connect-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.wallet-connect-btn {
+  width: 100%;
+  padding: 16px 24px;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+.wallet-connect-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.wallet-connect-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.wallet-connect-btn--coinbase {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px var(--glow);
+}
+.wallet-connect-btn--coinbase:hover:not(:disabled) {
+  box-shadow: 0 0 28px var(--glow);
+}
+
+.wallet-connect-btn--walletconnect {
+  background: var(--card);
+  color: var(--text);
+  border-color: var(--muted);
+}
+.wallet-connect-btn--walletconnect:hover:not(:disabled) {
+  border-color: var(--accent-dim);
+}

@@ -1,0 +1,167 @@
+.screen {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 16px;
+  overflow: auto;
+}
+
+.screen.screen--games {
+  padding-top: max(52px, calc(12px + env(safe-area-inset-top, 0px) + 40px));
+}
+.screen.screen--profile-with-back {
+  padding-top: max(52px, calc(12px + env(safe-area-inset-top, 0px) + 40px));
+}
+
+.screen-title {
+  font-family: var(--font-arcade);
+  font-size: clamp(0.75rem, 3.5vw, 0.9rem);
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.screen-subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 20px;
+}
+
+.screen-content {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+.screen-content p { margin-bottom: 12px; }
+.screen-content ul { margin: 8px 0 16px 20px; }
+.screen-content li { margin-bottom: 6px; }
+
+/* How to play — текст по центру, оформление карточкой */
+.screen--how {
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 20px;
+}
+.screen-content--centered {
+  text-align: center;
+  max-width: 320px;
+  padding: 24px 20px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+.screen-content--centered p,
+.screen-content--centered .screen-list {
+  margin-left: 0;
+  margin-right: 0;
+}
+.screen-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.screen-list li {
+  margin: 0;
+}
+.screen-content--centered strong {
+  color: var(--accent);
+}
+
+.screen-muted {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 20px;
+}
+
+/* Ball select — по центру */
+.screen--ball {
+  align-items: center;
+  justify-content: flex-start;
+}
+.screen--ball .ball-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+  max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.ball-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.ball-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ball-option:hover {
+  border-color: var(--muted);
+}
+.ball-option--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--glow);
+}
+
+.ball-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.ball-name {
+  font-weight: 600;
+}
+
+/* Leaderboard / Profile placeholders */
+.leaderboard-placeholder,
+.profile-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 20px;
+  background: var(--card);
+  border-radius: 12px;
+  border: 2px dashed rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.leaderboard-icon,
+.profile-icon {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+
+.profile-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}

@@ -1,0 +1,263 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app--loading {
+  align-items: center;
+  justify-content: center;
+}
+.wallet-connect-loading {
+  color: var(--muted);
+  font-family: var(--font-ui);
+}
+
+.wallet-gate {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 20px;
+  padding-top: max(24px, env(safe-area-inset-top, 0px));
+  overflow: auto;
+}
+.wallet-gate .arkanoid-header {
+  margin-top: 28px;
+  margin-bottom: 0;
+}
+.wallet-gate .arkanoid-header-tagline {
+  margin-bottom: 12px;
+}
+.wallet-gate .wallet-connect {
+  margin-top: -10vh;
+}
+.wallet-gate-loading {
+  margin-top: 24px;
+  color: var(--muted);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.app-main-center {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 0;
+}
+
+.mint-hint {
+  position: relative;
+  padding: 12px 36px 12px 16px;
+  margin: 0 16px 12px;
+  background: rgba(255, 235, 59, 0.15);
+  border: 1px solid rgba(255, 235, 59, 0.4);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.mint-hint-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.mint-hint-dismiss:hover {
+  color: var(--text);
+}
+
+.game-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+  min-height: 0;
+}
+
+.game-container.game-fullscreen {
+  padding: 0;
+  position: fixed;
+  inset: 0;
+  justify-content: flex-start;
+  background: var(--bg);
+}
+
+.game-container.game-fullscreen .game-ui {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: var(--font-ui);
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
+}
+
+/* Игровое поле на весь экран: ПК — фулскрин, телефон — по вьюпорту */
+.game-container.game-fullscreen .game-canvas-wrap {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: var(--bg);
+  position: relative;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.game-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  background: var(--bg);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  object-fit: fill;
+}
+
+.game-fire-btn {
+  position: absolute;
+  bottom: 56px;
+  right: 16px;
+  z-index: 5;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--accent);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  box-shadow: 0 0 16px var(--glow);
+}
+.game-fire-btn:hover { opacity: 0.95; }
+.game-fire-btn:active { transform: scale(0.98); }
+
+.game-container.game-fullscreen .hint {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.game-container {
+  position: relative;
+  padding-top: max(52px, calc(12px + env(safe-area-inset-top, 0px) + 40px));
+}
+
+.game-ui {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.game-ui span {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Экран «Уровень пройден» */
+.game-container.game-level-complete {
+  justify-content: center;
+  padding: 20px;
+}
+
+.level-complete-card {
+  max-width: 340px;
+  width: 100%;
+  padding: 28px 24px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.level-complete-title {
+  font-family: var(--font-arcade);
+  font-size: clamp(0.75rem, 3.5vw, 0.95rem);
+  color: var(--accent);
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.level-complete-score {
+  font-family: var(--font-ui);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 24px;
+}
+
+.level-complete-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.level-complete-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.1s;
+}
+.level-complete-btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 20px var(--glow);
+}
+.level-complete-btn--primary:hover {
+  box-shadow: 0 0 28px var(--glow);
+}
+.level-complete-btn.secondary {
+  background: var(--bg-panel);
+  color: var(--text);
+  border-color: var(--muted);
+}
+.level-complete-btn:active {
+  transform: scale(0.98);
+}

@@ -1,0 +1,68 @@
+.tab-bar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 4px;
+  padding: 8px 4px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  background: var(--bg-panel);
+  border-top: 2px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.65rem;
+  font-weight: 600;
+  transition: color 0.2s, background 0.2s;
+}
+.tab-bar-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+.tab-bar-item--active {
+  color: var(--accent);
+  background: rgba(0, 240, 208, 0.1);
+}
+.tab-bar-item--active .tab-bar-icon {
+  opacity: 1;
+}
+
+.tab-bar-item--play {
+  color: var(--accent);
+  background: rgba(0, 240, 208, 0.12);
+  font-weight: 700;
+}
+.tab-bar-item--play:hover {
+  color: var(--bg);
+  background: var(--accent);
+  box-shadow: 0 0 16px var(--glow);
+}
+.tab-bar-item--play .tab-bar-icon {
+  opacity: 1;
+}
+
+.tab-bar-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.tab-bar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

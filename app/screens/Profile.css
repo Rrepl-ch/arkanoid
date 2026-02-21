@@ -1,0 +1,259 @@
+.screen--profile .profile-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.profile-user {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-panel);
+  border: 2px solid var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.profile-avatar--pfp {
+  overflow: hidden;
+  padding: 0;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.profile-avatar-icon {
+  font-size: 2rem;
+  opacity: 0.8;
+}
+
+.profile-username {
+  font-family: var(--font-arcade);
+  font-size: 0.7rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.profile-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.profile-section-title {
+  font-family: var(--font-arcade);
+  font-size: 0.65rem;
+  color: var(--accent);
+  margin-bottom: 12px;
+  letter-spacing: 0.04em;
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 10px;
+  background: var(--card);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.profile-stat-value {
+  font-family: var(--font-arcade);
+  font-size: 0.85rem;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.profile-stat-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Collapsible Achievements section (crazy-racer style) */
+.profile-section {
+  margin-bottom: 0;
+}
+
+.profile-section-collapsible {
+  margin-bottom: 0;
+}
+
+.profile-section-collapsible .profile-section-title {
+  margin-bottom: 0;
+}
+
+.profile-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0 0 8px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.profile-section-head:hover {
+  opacity: 0.9;
+}
+
+.profile-section-head .profile-section-title {
+  flex: 1;
+}
+
+.profile-section-state {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.profile-section-state--inline {
+  display: inline-block;
+  margin-left: 8px;
+  margin-bottom: 12px;
+}
+
+.profile-section-chevron {
+  font-size: 0.6rem;
+  color: var(--accent);
+}
+
+.profile-achievement-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.profile-achievement-group {
+  border-radius: 10px;
+  border: 1px solid rgba(0, 240, 208, 0.2);
+  background: rgba(0, 240, 208, 0.06);
+  overflow: hidden;
+}
+
+.profile-achievement-group.expanded {
+  border-color: rgba(0, 240, 208, 0.35);
+  background: rgba(0, 240, 208, 0.1);
+}
+
+.profile-achievement-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.profile-achievement-head:hover {
+  background: rgba(0, 240, 208, 0.08);
+}
+
+.profile-achievement-head .profile-achievement-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.profile-achievement-head .profile-achievement-title {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+}
+
+.profile-achievement-head .profile-achievement-state {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+.profile-achievement-chevron {
+  font-size: 0.6rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.profile-achievement-sublist {
+  padding: 0 12px 12px 12px;
+  padding-left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-achievement-subrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 240, 208, 0.15);
+}
+
+.profile-achievement-subrow .profile-achievement-icon {
+  font-size: 1.1rem;
+}
+
+.profile-achievement-subrow .profile-achievement-title {
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.profile-achievement-subrow.unlocked .profile-achievement-title {
+  color: var(--success);
+}
+
+.profile-achievement-subrow .profile-achievement-state {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.profile-achievement-subrow.unlocked .profile-achievement-state {
+  color: var(--success);
+}
+
+.profile-achievement-all-done {
+  font-size: 0.75rem;
+  color: var(--success);
+  padding: 10px 0;
+  margin: 0;
+}
