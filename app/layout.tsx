@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   description: 'Arkanoid miniapp',
   icons: { icon: '/favicon.svg' },
   other: {
+    'base:app_id': '6999e67ef949e3ecd6eb1840',
     'fc:miniapp': JSON.stringify({
       version: 'next',
       imageUrl: baseUrl ? `${baseUrl}/embed.png` : '/embed.png',

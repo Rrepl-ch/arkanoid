@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+/**
+ * Base Build Account association: https://www.base.dev/preview?tab=account
+ * Вставь туда header, payload, signature в Vercel → Environment Variables:
+ * FARCASTER_ACCOUNT_HEADER, FARCASTER_ACCOUNT_PAYLOAD, FARCASTER_ACCOUNT_SIGNATURE
+ */
+
 /** Base URL for manifest links (set NEXT_PUBLIC_URL on Vercel, e.g. https://your-app.vercel.app) */
 function getBaseUrl(req: NextRequest): string {
   const url = process.env.NEXT_PUBLIC_URL
