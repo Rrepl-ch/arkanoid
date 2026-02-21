@@ -7,10 +7,10 @@
 | Шаг | Статус |
 |-----|--------|
 | **MiniApp SDK** | Установлен `@farcaster/miniapp-sdk` |
-| **Показ приложения** | В `App.tsx` в `useEffect` вызывается `sdk.actions.ready()` |
-| **Манифест** | Файл `public/.well-known/farcaster.json` с плейсхолдером `__APP_URL__` |
-| **Embed-мета** | В `index.html` есть `<meta name="fc:miniapp" ...>` с абсолютными URL через `__APP_URL__` |
-| **Скрипт подстановки URL** | `scripts/replace-app-url.js` подставляет твой домен перед сборкой |
+| **Показ приложения** | В `MiniAppProvider` вызывается `sdk.actions.ready()` при запуске в Base |
+| **Манифест** | Роут `app/.well-known/farcaster.json/route.ts` — URL берётся из `NEXT_PUBLIC_URL` или из запроса |
+| **Embed-мета** | В `app/layout.tsx` мета `fc:miniapp` с URL из `NEXT_PUBLIC_URL` |
+| **Один деплой** | На Vercel задай `NEXT_PUBLIC_URL=https://твой-домен.vercel.app` — манифест и мета подставят его автоматически |
 
 ## Подключение кошелька — что нужно для работы
 
@@ -39,13 +39,13 @@
 
 ## Выгрузка на Base (кратко)
 
-1. **Задеплой** приложение на Vercel / Netlify и запомни URL (например `https://arkanoid.vercel.app`).
-2. **Собери с подстановкой URL:**  
-   `APP_URL=https://твой-домен.vercel.app npm run build:base`  
-   (скрипт заменит `__APP_URL__` в манифесте и в `index.html`, затем выполнится сборка.)
-3. **Залий билд** на хостинг (или подключи автодеплой из репозитория).
+1. **Задеплой** приложение на Vercel и запомни URL (например `https://arkanoid.vercel.app`).
+2. **В настройках Vercel → Environment Variables** задай:
+   - `NEXT_PUBLIC_URL` = твой URL (например `https://твой-проект.vercel.app`)
+   - для Account association потом добавь: `FARCASTER_ACCOUNT_HEADER`, `FARCASTER_ACCOUNT_PAYLOAD`, `FARCASTER_ACCOUNT_SIGNATURE` (см. шаг 5).
+3. Пересобери/задеплой (автодеплой из Git подхватит переменные).
 4. **Добавь картинки** в `public/`: `icon.png`, `splash.png`, `embed.png`, `og.png`, `s1.png`, `s2.png`, `s3.png` (см. ниже).
-5. **Account association:** [Base Build → Account association](https://www.base.dev/preview?tab=account) — введи App URL, Submit → Verify, скопируй `header`, `payload`, `signature` в `accountAssociation` в `public/.well-known/farcaster.json`.
+5. **Account association:** [Base Build → Account association](https://www.base.dev/preview?tab=account) — введи App URL, Submit → Verify, скопируй `header`, `payload`, `signature`. В Vercel добавь переменные `FARCASTER_ACCOUNT_HEADER`, `FARCASTER_ACCOUNT_PAYLOAD`, `FARCASTER_ACCOUNT_SIGNATURE` (или вставь в `public/.well-known/farcaster.json` и оставь роут читать оттуда — сейчас роут берёт их из env).
 6. **Превью:** [Base Build Preview](https://www.base.dev/preview) — проверь эмбед и запуск.
 7. **Публикация:** в приложении Base создай пост с URL приложения.
 
@@ -63,10 +63,10 @@
 
 ### 2. Account association (нужно для публикации)
 
-1. Убедиться, что по адресу `https://ваш-домен.com/.well-known/farcaster.json` отдаётся манифест (уже с подставленным URL после `build:base`).
+1. Убедиться, что по адресу `https://ваш-домен.com/.well-known/farcaster.json` отдаётся манифест (роут подставляет URL из `NEXT_PUBLIC_URL`).
 2. Открыть [Base Build → Account association](https://www.base.dev/preview?tab=account).
 3. Ввести **App URL** (ваш домен), нажать Submit, затем **Verify**.
-4. Скопировать сгенерированные `header`, `payload` и `signature` в `public/.well-known/farcaster.json` в блок `accountAssociation` и задеплоить снова.
+4. Скопировать сгенерированные `header`, `payload` и `signature` в переменные Vercel: `FARCASTER_ACCOUNT_HEADER`, `FARCASTER_ACCOUNT_PAYLOAD`, `FARCASTER_ACCOUNT_SIGNATURE` — роут манифеста подставит их в ответ. Пересобрать/задеплоить.
 
 ### 3. По желанию: webhook
 

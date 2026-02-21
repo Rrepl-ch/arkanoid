@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Providers } from './providers'
 import './globals.css'
 
+const baseUrl = process.env.NEXT_PUBLIC_URL || ''
+
 export const metadata: Metadata = {
   title: 'Arkanoid',
   description: 'Arkanoid miniapp',
@@ -9,14 +11,14 @@ export const metadata: Metadata = {
   other: {
     'fc:miniapp': JSON.stringify({
       version: 'next',
-      imageUrl: 'https://__APP_URL__/embed.png',
+      imageUrl: baseUrl ? `${baseUrl}/embed.png` : '/embed.png',
       button: {
         title: 'Play',
         action: {
           type: 'launch_miniapp',
           name: 'Arkanoid',
-          url: 'https://__APP_URL__',
-          splashImageUrl: 'https://__APP_URL__/splash.png',
+          url: baseUrl || undefined,
+          splashImageUrl: baseUrl ? `${baseUrl}/splash.png` : '/splash.png',
           splashBackgroundColor: '#0c0a14',
         },
       },
