@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
 import { sdk } from '@farcaster/miniapp-sdk'
 import { getNickname, setNickname as setNicknameStorage } from '../nicknameStorage'
-async function trySetNicknameFromFarcaster(address: string): Promise<boolean> {
+import { claimNickname, fetchNicknameForAddress } from '../nicknameApi'
+
+async function trySetNicknameFromFarcaster(address: string): Promise<string | null> {
   try {
     const context = await sdk.context
     const username = context?.user?.username?.trim()
     if (username) {
-      setNicknameStorage(address, username)
-      return true
+      const claimed = await claimNickname(address, username)
+      if (claimed.ok) {
+        setNicknameStorage(address, claimed.nickname)
+        return claimed.nickname
+      }
     }
   } catch {
     // ignore
   }
-  return false
+  return null
 }
 
 export function useNicknameForAddress(address: string | undefined) {
@@ -21,11 +26,14 @@ export function useNicknameForAddress(address: string | undefined) {
   )
 
   const setNickname = useCallback(
-    (addr: string, value: string) => {
-      setNicknameStorage(addr, value)
+    async (addr: string, value: string) => {
+      const claimed = await claimNickname(addr, value)
+      if (!claimed.ok) return claimed
+      setNicknameStorage(addr, claimed.nickname)
       if (address && addr.toLowerCase() === address.toLowerCase()) {
-        setNicknameState(value.trim() || null)
+        setNicknameState(claimed.nickname.trim() || null)
       }
+      return { ok: true as const }
     },
     [address]
   )
@@ -37,8 +45,17 @@ export function useNicknameForAddress(address: string | undefined) {
     }
     setNicknameState(getNickname(address))
     let cancelled = false
-    trySetNicknameFromFarcaster(address).then(() => {
-      if (!cancelled) setNicknameState(getNickname(address))
+    fetchNicknameForAddress(address).then((remote) => {
+      if (cancelled) return
+      if (remote) {
+        setNicknameStorage(address, remote)
+        setNicknameState(remote)
+      }
+    })
+    trySetNicknameFromFarcaster(address).then((farcasterNick) => {
+      if (!cancelled && farcasterNick) {
+        setNicknameState(farcasterNick)
+      }
     })
     return () => {
       cancelled = true

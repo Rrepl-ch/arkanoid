@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { isNicknameTaken } from '../nicknameStorage'
 import ArkanoidHeader from '../components/ArkanoidHeader'
 import './SetNickname.css'
 
@@ -9,16 +8,18 @@ const NICK_REG = /^[a-zA-Z0-9_]+$/
 
 type Props = {
   address: string
-  setNickname: (address: string, value: string) => void
+  setNickname: (address: string, value: string) => Promise<{ ok: true } | { ok: false; error: string; status?: number }>
   onDone: () => void
 }
 
 export default function SetNickname({ address, setNickname, onDone }: Props) {
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (saving) return
     const trimmed = value.trim()
     setError(null)
     if (trimmed.length < NICK_MIN) {
@@ -33,11 +34,13 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
       setError('Only letters, numbers and _')
       return
     }
-    if (isNicknameTaken(trimmed, address)) {
-      setError('This nickname is already taken')
+    setSaving(true)
+    const res = await setNickname(address, trimmed)
+    setSaving(false)
+    if (!res.ok) {
+      setError(res.status === 409 ? 'This nickname is already taken' : (res.error || 'Failed to save nickname'))
       return
     }
-    setNickname(address, trimmed)
     onDone()
   }
 
@@ -58,8 +61,8 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
             autoComplete="username"
           />
           {error && <p className="set-nickname-error">{error}</p>}
-          <button type="submit" className="set-nickname-submit">
-            Done
+          <button type="submit" className="set-nickname-submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Done'}
           </button>
         </form>
       </div>

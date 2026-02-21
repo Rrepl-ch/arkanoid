@@ -35,6 +35,14 @@ function memoryExec(cmd: Command): unknown {
     store.kv.set(key, value)
     return 'OK'
   }
+  if (op === 'DEL') {
+    const keys = cmd.slice(1).map(asString)
+    let removed = 0
+    for (const key of keys) {
+      if (store.kv.delete(key)) removed++
+    }
+    return removed
+  }
   if (op === 'MGET') {
     const keys = cmd.slice(1).map(asString)
     return keys.map((k) => store.kv.get(k) ?? null)
