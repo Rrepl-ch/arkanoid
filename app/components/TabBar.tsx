@@ -1,12 +1,11 @@
 import './TabBar.css'
 
-export type TabId = 'how' | 'ball' | 'play' | 'leaderboard' | 'profile'
+export type TabId = 'how' | 'ball' | 'play' | 'profile'
 
 const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'how', label: 'How to play', icon: '?' },
   { id: 'ball', label: 'Ball', icon: '●' },
   { id: 'play', label: 'Play', icon: '▶' },
-  { id: 'leaderboard', label: 'Leaderboard', icon: '🏆' },
   { id: 'profile', label: 'Profile', icon: '👤' },
 ]
 

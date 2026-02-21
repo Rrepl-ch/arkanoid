@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'arkanoid-stats'
-import { saveProfileStats, submitLeaderboardEntry } from './statsApi'
+import { saveProfileStats } from './statsApi'
 
 export type ArkanoidStats = {
   gamesPlayed: number
@@ -75,15 +75,6 @@ export function recordArkanoidGameEnd(score: number, levelReached: number, opts?
   }
   persist(next)
   syncStats(next, opts)
-  const address = normalizeAddress(opts?.address)
-  if (address) {
-    void submitLeaderboardEntry({
-      address,
-      nickname: (opts?.nickname ?? '').trim() || `${address.slice(0, 6)}...${address.slice(-4)}`,
-      score: next.totalScore,
-      avatar: opts?.avatar ?? null,
-    })
-  }
 }
 
 /** Call when user successfully connects via Coinbase Wallet (for achievement). */

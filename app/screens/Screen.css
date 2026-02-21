@@ -139,8 +139,7 @@
   font-weight: 600;
 }
 
-/* Leaderboard / Profile placeholders */
-.leaderboard-placeholder,
+/* Profile placeholders */
 .profile-placeholder {
   display: flex;
   flex-direction: column;
@@ -155,7 +154,6 @@
   font-size: 0.9rem;
 }
 
-.leaderboard-icon,
 .profile-icon {
   font-size: 2.5rem;
   opacity: 0.6;

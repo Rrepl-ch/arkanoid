@@ -59,7 +59,7 @@ export default function SetNickname({
       <ArkanoidHeader />
       <div className="set-nickname-form-wrap">
         <h2 className="set-nickname-title">Choose a nickname</h2>
-        <p className="set-nickname-subtitle">It will be visible on the leaderboard. Nicknames are unique.</p>
+        <p className="set-nickname-subtitle">Nicknames are unique.</p>
         <form onSubmit={handleSubmit} className="set-nickname-form">
           <input
             type="text"

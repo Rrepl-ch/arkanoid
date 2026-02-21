@@ -36,7 +36,7 @@ function AchievementSubrow({ ach, progress }: { ach: AchievementDef; progress: A
 }
 
 type ProfileProps = {
-  /** When set, show as "view profile" with Back button (e.g. from leaderboard). */
+  /** When set, show as "view profile" with Back button. */
   viewAddress?: string | null
   currentAddress?: string | null
   onBack?: () => void
@@ -123,7 +123,7 @@ export default function Profile({ viewAddress = null, currentAddress = null, onB
           </div>
           <p className="profile-username">{displayName}</p>
           <p className="profile-hint">
-            {isViewingOther ? 'On-chain stats coming soon' : 'Sign in with Base to save progress & leaderboard'}
+            {isViewingOther ? 'On-chain stats coming soon' : 'Sign in with Base to save progress'}
           </p>
         </div>
 

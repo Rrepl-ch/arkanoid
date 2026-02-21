@@ -11,7 +11,6 @@ import TabBar, { type TabId } from './components/TabBar'
 import RulesPopup, { getRulesSeen } from './components/RulesPopup'
 import HowToPlay from './screens/HowToPlay'
 import BallSelect from './screens/BallSelect'
-import Leaderboard from './screens/Leaderboard'
 import Profile from './screens/Profile'
 import GameSelect from './screens/GameSelect'
 import WalletConnect from './screens/WalletConnect'
@@ -133,28 +132,16 @@ export default function Home() {
                 <BallSelect />
               </>
             )}
-            {activeTab === 'leaderboard' && (
-              profileViewAddress != null ? (
-                <Profile
-                  viewAddress={profileViewAddress}
-                  currentAddress={address ?? null}
-                  onBack={() => setProfileViewAddress(null)}
-                  currentUserNickname={effectiveNickname}
-                />
-              ) : (
-                <Leaderboard
-                  currentAddress={address ?? null}
-                  currentUserNickname={effectiveNickname}
-                  currentUserAvatar={effectiveAvatar}
-                  onViewProfile={(addr) => {
-                    if (addr === 'current-user') setActiveTab('profile')
-                    else setProfileViewAddress(addr)
-                  }}
-                />
-              )
-            )}
             {activeTab === 'profile' && profileViewAddress == null && (
               <Profile currentAddress={address ?? null} currentUserNickname={effectiveNickname} />
+            )}
+            {activeTab === 'profile' && profileViewAddress != null && (
+              <Profile
+                viewAddress={profileViewAddress}
+                currentAddress={address ?? null}
+                onBack={() => setProfileViewAddress(null)}
+                currentUserNickname={effectiveNickname}
+              />
             )}
           </div>
           <TabBar
