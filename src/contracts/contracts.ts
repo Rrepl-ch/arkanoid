@@ -13,7 +13,7 @@ export const ARKANOID_GAMES_ADDRESS =
 export const ARKANOID_CHECKIN_ADDRESS =
   (import.meta.env.VITE_ARKANOID_CHECKIN_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
-/** Same pattern as crazy-racer CRAZY_RACER_CARS_ABI: mint + ownsBallType. */
+/** ArkanoidBalls.sol exposes mint() + hasBall(address,uint8). */
 export const ARKANOID_BALLS_ABI = [
   {
     inputs: [{ internalType: 'uint8', name: 'ballType', type: 'uint8' }],
@@ -27,7 +27,7 @@ export const ARKANOID_BALLS_ABI = [
       { internalType: 'address', name: 'owner', type: 'address' },
       { internalType: 'uint8', name: 'ballType', type: 'uint8' },
     ],
-    name: 'ownsBallType',
+    name: 'hasBall',
     outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
