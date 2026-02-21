@@ -42,6 +42,7 @@
 }
 
 .arkanoid-level-card {
+  position: relative;
   aspect-ratio: 1;
   min-height: 70px;
   display: flex;
@@ -63,6 +64,25 @@
 }
 .arkanoid-level-card:active {
   transform: scale(0.96);
+}
+
+.arkanoid-level-card--locked {
+  opacity: 0.6;
+  filter: saturate(0.5);
+  cursor: not-allowed;
+}
+
+.arkanoid-level-card--locked:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.arkanoid-level-lock {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  font-size: 0.85rem;
+  opacity: 0.65;
 }
 
 .arkanoid-level-num {

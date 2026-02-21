@@ -33,14 +33,15 @@ const REQUIRE_WALLET = true
 export default function App() {
   const { address, status } = useAccount()
   const { connect, connectors, isPending: connecting, error: connectError } = useConnect()
-  const { context: miniAppContext } = useMiniApp()
+  const { context: miniAppContext, isReady: miniAppReady } = useMiniApp()
   const { nickname, setNickname } = useNicknameForAddress(address ?? undefined)
   const baseUser = miniAppContext?.user
   const effectiveNickname = baseUser
-    ? (baseUser.displayName ?? baseUser.username ?? nickname)
+    ? (baseUser.username ?? baseUser.displayName ?? nickname)
     : nickname
   const effectiveAvatar = baseUser?.pfpUrl ?? null
-  const needsNickname = Boolean(address && !effectiveNickname)
+  // In Mini App, wait for context before deciding whether nickname is required.
+  const needsNickname = Boolean(address && !effectiveNickname && miniAppReady)
   const { owned: ownedBallIds } = useOwnedBalls()
   const hasMintedBall = ownedBallIds.size > 0
   const [game, setGame] = useState<GameId>('menu')

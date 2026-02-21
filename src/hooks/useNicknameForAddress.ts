@@ -23,7 +23,9 @@ export function useNicknameForAddress(address: string | undefined) {
   const setNickname = useCallback(
     (addr: string, value: string) => {
       setNicknameStorage(addr, value)
-      if (addr === address) setNicknameState(value.trim() || null)
+      if (address && addr.toLowerCase() === address.toLowerCase()) {
+        setNicknameState(value.trim() || null)
+      }
     },
     [address]
   )
