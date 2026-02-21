@@ -1,23 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Base Build Account association: https://www.base.dev/preview?tab=account
  * Вставь туда header, payload, signature в Vercel → Environment Variables:
  * FARCASTER_ACCOUNT_HEADER, FARCASTER_ACCOUNT_PAYLOAD, FARCASTER_ACCOUNT_SIGNATURE
  */
 
-/** Base URL for manifest links (set NEXT_PUBLIC_URL on Vercel, e.g. https://your-app.vercel.app) */
 function getBaseUrl(req: NextRequest): string {
   const url = process.env.NEXT_PUBLIC_URL
-  if (url) return url.replace(/\/$/, '')
-  const host = req.headers.get('host') || 'localhost:3000'
-  const proto = req.headers.get('x-forwarded-proto') || 'http'
-  return `${proto}://${host}`
+  if (url && typeof url === 'string') return url.replace(/\/$/, '')
+  try {
+    const host = req.headers.get('host') ?? ''
+    const proto = req.headers.get('x-forwarded-proto') ?? (req.headers.get('x-forwarded-ssl') === 'on' ? 'https' : 'http')
+    if (host) return `${proto}://${host}`
+  } catch {
+    // ignore
+  }
+  return 'https://arkanod.vercel.app'
 }
 
 export async function GET(request: NextRequest) {
-  const base = getBaseUrl(request)
-  const manifest = {
+  try {
+    const base = getBaseUrl(request)
+    const manifest = {
     accountAssociation: {
       header: process.env.FARCASTER_ACCOUNT_HEADER ?? '',
       payload: process.env.FARCASTER_ACCOUNT_PAYLOAD ?? '',
@@ -44,5 +52,15 @@ export async function GET(request: NextRequest) {
       noindex: false,
     },
   }
-  return NextResponse.json(manifest)
+    return NextResponse.json(manifest, {
+      headers: {
+        'Cache-Control': 'public, max-age=300',
+      },
+    })
+  } catch (err) {
+    return NextResponse.json(
+      { error: 'Manifest error' },
+      { status: 500 }
+    )
+  }
 }
