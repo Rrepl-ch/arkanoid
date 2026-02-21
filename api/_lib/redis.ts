@@ -86,29 +86,30 @@ function memoryExec(cmd: Command): unknown {
   throw new Error(`Unsupported memory Redis command: ${op}`)
 }
 
-/* ── ioredis client ── */
+/* ── ioredis: connect → execute → disconnect (like crazy-racer) ── */
 
-let _client: Redis | null = null
-
-function getClient(): Redis {
+async function withRedis<T>(fn: (client: Redis) => Promise<T>): Promise<T> {
   if (!REDIS_URL) throw new Error('REDIS_URL not set')
-  if (!_client) {
-    _client = new Redis(REDIS_URL, {
-      maxRetriesPerRequest: 1,
-      connectTimeout: 5000,
-      lazyConnect: true,
-    })
-    _client.on('error', () => {})
+  const client = new Redis(REDIS_URL, {
+    connectTimeout: 5000,
+    maxRetriesPerRequest: 0,
+    retryStrategy: () => null,
+    enableOfflineQueue: false,
+  })
+  try {
+    return await fn(client)
+  } finally {
+    client.disconnect()
   }
-  return _client
 }
 
 export async function redisExec(command: Command): Promise<unknown> {
   if (!REDIS_URL) return memoryExec(command)
   try {
-    const client = getClient()
-    const args = command.map(String)
-    return await client.call(args[0], ...args.slice(1))
+    return await withRedis(async (client) => {
+      const args = command.map(String)
+      return client.call(args[0], ...args.slice(1))
+    })
   } catch {
     return memoryExec(command)
   }
@@ -117,17 +118,18 @@ export async function redisExec(command: Command): Promise<unknown> {
 export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
   if (!REDIS_URL) return commands.map((cmd) => memoryExec(cmd))
   try {
-    const client = getClient()
-    const p = client.pipeline()
-    for (const cmd of commands) {
-      const args = cmd.map(String)
-      p.call(args[0], ...args.slice(1))
-    }
-    const results = await p.exec()
-    if (!results) return commands.map((cmd) => memoryExec(cmd))
-    return results.map(([err, val]) => {
-      if (err) throw err
-      return val
+    return await withRedis(async (client) => {
+      const p = client.pipeline()
+      for (const cmd of commands) {
+        const args = cmd.map(String)
+        p.call(args[0], ...args.slice(1))
+      }
+      const results = await p.exec()
+      if (!results) return commands.map((cmd) => memoryExec(cmd))
+      return results.map(([err, val]) => {
+        if (err) throw err
+        return val
+      })
     })
   } catch {
     return commands.map((cmd) => memoryExec(cmd))
