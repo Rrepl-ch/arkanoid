@@ -43,7 +43,7 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
   const contracts = BALLS.map((_, i) => ({
     address: ARKANOID_BALLS_ADDRESS,
     abi: ARKANOID_BALLS_ABI,
-    functionName: 'ownsBallType' as const,
+    functionName: 'hasMinted' as const,
     args: [address!, i] as const,
   }))
 
@@ -52,17 +52,14 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
   })
 
   const owned = useMemo(() => {
-    if (!CONTRACT_DEPLOYED || !address) return localOwned
-
-    const contractOwned = new Set<number>()
-    data?.forEach((r, i) => {
-      if (r.status === 'success' && r.result === true) contractOwned.add(i)
-    })
-
-    if (contractOwned.size > 0) return contractOwned
-
-    return localOwned
-  }, [CONTRACT_DEPLOYED, address, data, localOwned])
+    const merged = new Set<number>(localOwned)
+    if (CONTRACT_DEPLOYED && address && data) {
+      data.forEach((r, i) => {
+        if (r.status === 'success' && r.result === true) merged.add(i)
+      })
+    }
+    return merged
+  }, [address, data, localOwned])
 
   return { owned, isLoading, refetch }
 }
