@@ -10,16 +10,26 @@ type Props = {
   address: string
   setNickname: (address: string, value: string) => Promise<{ ok: true } | { ok: false; error: string; status?: number }>
   onDone: () => void
+  pending?: boolean
+  externalError?: string | null
+  submitLabel?: string
 }
 
-export default function SetNickname({ address, setNickname, onDone }: Props) {
+export default function SetNickname({
+  address,
+  setNickname,
+  onDone,
+  pending = false,
+  externalError = null,
+  submitLabel = 'Done',
+}: Props) {
   const [value, setValue] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (saving) return
+    if (saving || pending) return
     const trimmed = value.trim()
     setError(null)
     if (trimmed.length < NICK_MIN) {
@@ -60,9 +70,9 @@ export default function SetNickname({ address, setNickname, onDone }: Props) {
             maxLength={NICK_MAX}
             autoComplete="username"
           />
-          {error && <p className="set-nickname-error">{error}</p>}
-          <button type="submit" className="set-nickname-submit" disabled={saving}>
-            {saving ? 'Saving…' : 'Done'}
+          {(error || externalError) && <p className="set-nickname-error">{error ?? externalError}</p>}
+          <button type="submit" className="set-nickname-submit" disabled={saving || pending}>
+            {saving || pending ? 'Saving…' : submitLabel}
           </button>
         </form>
       </div>

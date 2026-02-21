@@ -13,6 +13,9 @@ export const ARKANOID_GAMES_ADDRESS =
 export const ARKANOID_CHECKIN_ADDRESS =
   (import.meta.env.VITE_ARKANOID_CHECKIN_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
+export const ARKANOID_NICKNAME_ADDRESS =
+  (import.meta.env.VITE_ARKANOID_NICKNAME_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
+
 /** ArkanoidBalls.sol exposes mint() + hasBall(address,uint8). */
 export const ARKANOID_BALLS_ABI = [
   {
@@ -30,6 +33,30 @@ export const ARKANOID_BALLS_ABI = [
     name: 'hasBall',
     outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
+    type: 'function',
+  },
+] as const
+
+export const ARKANOID_NICKNAME_ABI = [
+  {
+    inputs: [{ internalType: 'address', name: 'owner', type: 'address' }],
+    name: 'hasNickname',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'address', name: 'owner', type: 'address' }],
+    name: 'getNickname',
+    outputs: [{ internalType: 'string', name: '', type: 'string' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'string', name: 'nickname', type: 'string' }],
+    name: 'mint',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
 ] as const
