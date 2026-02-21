@@ -1,5 +1,11 @@
+import { createClient } from 'redis'
+
 type Primitive = string | number
 type Command = [string, ...Primitive[]]
+
+const REDIS_URL = process.env.REDIS_URL
+
+/* ── In-memory fallback (used when REDIS_URL is not set) ── */
 
 type MemoryStore = {
   kv: Map<string, string>
@@ -26,32 +32,25 @@ function memoryExec(cmd: Command): unknown {
   const op = cmd[0].toUpperCase()
 
   if (op === 'GET') {
-    const key = asString(cmd[1] ?? '')
-    return store.kv.get(key) ?? null
+    return store.kv.get(asString(cmd[1] ?? '')) ?? null
   }
   if (op === 'SET') {
-    const key = asString(cmd[1] ?? '')
-    const value = asString(cmd[2] ?? '')
-    store.kv.set(key, value)
+    store.kv.set(asString(cmd[1] ?? ''), asString(cmd[2] ?? ''))
     return 'OK'
   }
   if (op === 'DEL') {
-    const keys = cmd.slice(1).map(asString)
     let removed = 0
-    for (const key of keys) {
+    for (const key of cmd.slice(1).map(asString)) {
       if (store.kv.delete(key)) removed++
     }
     return removed
   }
   if (op === 'MGET') {
-    const keys = cmd.slice(1).map(asString)
-    return keys.map((k) => store.kv.get(k) ?? null)
+    return cmd.slice(1).map(asString).map((k) => store.kv.get(k) ?? null)
   }
   if (op === 'ZSCORE') {
-    const key = asString(cmd[1] ?? '')
-    const member = asString(cmd[2] ?? '')
-    const z = store.zset.get(key)
-    const score = z?.get(member)
+    const z = store.zset.get(asString(cmd[1] ?? ''))
+    const score = z?.get(asString(cmd[2] ?? ''))
     return score == null ? null : String(score)
   }
   if (op === 'ZADD') {
@@ -87,56 +86,41 @@ function memoryExec(cmd: Command): unknown {
   throw new Error(`Unsupported memory Redis command: ${op}`)
 }
 
-function parseUpstashPipelineResponse(json: unknown): unknown[] {
-  if (Array.isArray(json)) {
-    // Upstash pipeline usually returns [{result: ...}, ...]
-    return json.map((item) => {
-      if (item && typeof item === 'object' && 'error' in item) {
-        throw new Error(String((item as { error: unknown }).error))
-      }
-      if (item && typeof item === 'object' && 'result' in item) {
-        return (item as { result: unknown }).result
-      }
-      return item
-    })
-  }
-  if (json && typeof json === 'object' && 'result' in json) {
-    const result = (json as { result: unknown }).result
-    if (Array.isArray(result)) return result
-    return [result]
-  }
-  return []
-}
+/* ── Redis TCP client (same pattern as crazy-racer) ── */
 
-export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
-  const url = process.env.REDIS_REST_URL
-  const token = process.env.REDIS_REST_TOKEN
-
-  if (!url || !token) {
-    return commands.map((cmd) => memoryExec(cmd))
-  }
-
+async function withRedis<T>(fn: (client: ReturnType<typeof createClient>) => Promise<T>): Promise<T> {
+  if (!REDIS_URL) throw new Error('REDIS_URL not set')
+  const client = createClient({ url: REDIS_URL })
+  await client.connect()
   try {
-    const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(commands),
-    })
-    if (!res.ok) {
-      throw new Error(`Redis REST failed: ${res.status}`)
-    }
-    const json = (await res.json()) as unknown
-    return parseUpstashPipelineResponse(json)
-  } catch {
-    // Keep API routes functional even if Redis env is misconfigured/unavailable.
-    return commands.map((cmd) => memoryExec(cmd))
+    return await fn(client)
+  } finally {
+    await client.quit()
   }
 }
 
 export async function redisExec(command: Command): Promise<unknown> {
-  const out = await redisPipeline([command])
-  return out[0]
+  if (!REDIS_URL) return memoryExec(command)
+  try {
+    return await withRedis(async (client) => {
+      return client.sendCommand(command.map(String))
+    })
+  } catch {
+    return memoryExec(command)
+  }
+}
+
+export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
+  if (!REDIS_URL) return commands.map((cmd) => memoryExec(cmd))
+  try {
+    return await withRedis(async (client) => {
+      const multi = client.multi()
+      for (const cmd of commands) {
+        multi.addCommand(cmd.map(String))
+      }
+      return multi.exec()
+    })
+  } catch {
+    return commands.map((cmd) => memoryExec(cmd))
+  }
 }
