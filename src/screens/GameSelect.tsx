@@ -48,7 +48,7 @@ export default function GameSelect({
         ← Back
       </button>
       <h2 className="screen-title">Games</h2>
-      <p className="screen-subtitle">Mint each game to play. Arkanoid requires a minted ball.</p>
+      <p className="screen-subtitle">Mint each game to play. Arkanod requires a minted ball.</p>
       {mintErrorMsg && (
         <p className="game-select-error" role="alert">
           {mintErrorMsg}
@@ -57,7 +57,7 @@ export default function GameSelect({
       <div className="game-select-list">
         <div className="game-select-card">
           <span className="game-select-icon">🧱</span>
-          <span className="game-select-name">Arkanoid</span>
+          <span className="game-select-name">Arkanod</span>
           {canPlayArkanoid ? (
             <button type="button" className="game-select-play" onClick={() => onSelect('arkanoid-levels')}>
               Play

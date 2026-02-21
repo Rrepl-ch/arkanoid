@@ -20,7 +20,7 @@ export default function ArkanoidLevelSelect({
         ← Back
       </button>
       <div className="arkanoid-levels-inner">
-        <h2 className="arkanoid-levels-title">Arkanoid</h2>
+        <h2 className="arkanoid-levels-title">Arkanod</h2>
         <p className="arkanoid-levels-subtitle">Complete levels in order to unlock next</p>
         <div className="arkanoid-levels-grid">
           {LEVELS.map((n) => {

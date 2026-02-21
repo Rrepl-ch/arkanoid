@@ -33,7 +33,7 @@ export default function RulesPopup({ onClose }: Props) {
       <div className="rules-popup">
         <h2 id="rules-popup-title" className="rules-popup-title">Rules</h2>
         <div className="rules-popup-content">
-          <p><strong>Arkanoid:</strong> break all bricks without losing the ball. Move your finger to move the paddle; tap to launch. Red heart — +1 life, yellow «3» — multiball.</p>
+          <p><strong>Arkanod:</strong> break all bricks without losing the ball. Move your finger to move the paddle; tap to launch. Red heart — +1 life, yellow «3» — multiball.</p>
           <p><strong>Minesweeper:</strong> reveal all cells without hitting mines. Tap to reveal, long-press to flag.</p>
           <p><strong>Space Shooter:</strong> hold to shoot, move your finger to move the ship.</p>
         </div>

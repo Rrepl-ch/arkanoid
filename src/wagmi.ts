@@ -18,7 +18,7 @@ export const config = createConfig({
   transports: { [base.id]: http() },
   connectors: [
     farcasterMiniApp(),
-    coinbaseWallet({ appName: 'Arkanoid', appLogoUrl: `${appUrl}/icon.png` }),
+    coinbaseWallet({ appName: 'Arkanod', appLogoUrl: `${appUrl}/icon.png` }),
     walletConnect({ projectId }),
     injected(),
   ],

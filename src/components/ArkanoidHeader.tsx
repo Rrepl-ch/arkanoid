@@ -12,7 +12,7 @@ export default function ArkanoidHeader() {
           <span key={i} className="arkanoid-header-brick" />
         ))}
       </div>
-      <h1 className="arkanoid-header-title">Arkanoid</h1>
+      <h1 className="arkanoid-header-title">Arkanod</h1>
       <p className="arkanoid-header-tagline">Break the bricks</p>
     </div>
   )

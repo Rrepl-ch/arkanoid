@@ -28,7 +28,15 @@ export function useNicknameForAddress(address: string | undefined) {
   const setNickname = useCallback(
     async (addr: string, value: string) => {
       const claimed = await claimNickname(addr, value)
-      if (!claimed.ok) return claimed
+      if (!claimed.ok) {
+        // Fallback: do not block onboarding if API is temporarily unavailable.
+        const local = value.trim()
+        setNicknameStorage(addr, local)
+        if (address && addr.toLowerCase() === address.toLowerCase()) {
+          setNicknameState(local || null)
+        }
+        return { ok: true as const }
+      }
       setNicknameStorage(addr, claimed.nickname)
       if (address && addr.toLowerCase() === address.toLowerCase()) {
         setNicknameState(claimed.nickname.trim() || null)
