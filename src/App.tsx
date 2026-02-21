@@ -16,7 +16,6 @@ import WalletConnect from './screens/WalletConnect'
 import SetNickname from './screens/SetNickname'
 import ArkanoidHeader from './components/ArkanoidHeader'
 import { useNicknameForAddress } from './hooks/useNicknameForAddress'
-import { useMintNickname, useNicknameStatus } from './hooks/useNicknameContract'
 import { useMiniApp } from './providers/MiniAppProvider'
 import { recordCoinbaseConnect } from './stats/arkanoidStats'
 import { getSelectedBallId } from './ball/ballStorage'
@@ -36,21 +35,13 @@ export default function App() {
   const { connect, connectors, isPending: connecting, error: connectError } = useConnect()
   const { context: miniAppContext, isReady: miniAppReady } = useMiniApp()
   const { nickname, setNickname } = useNicknameForAddress(address ?? undefined)
-  const { hasNickname, nickname: contractNickname, contractDeployed: nickContractDeployed, refetch: refetchNick } = useNicknameStatus()
-  const { mint: mintNickname, isPending: mintNickPending, error: mintNickError } = useMintNickname(() => refetchNick())
   const baseUser = miniAppContext?.user
   const effectiveNickname = baseUser
     ? (baseUser.username ?? baseUser.displayName ?? nickname)
-    : nickContractDeployed && hasNickname
-      ? contractNickname
-      : nickname
+    : nickname
   const effectiveAvatar = baseUser?.pfpUrl ?? null
-  // In Mini App, wait for context before deciding whether nickname is required.
-  const needsNickname = Boolean(
-    address &&
-    !baseUser &&
-    (nickContractDeployed ? !hasNickname : (!effectiveNickname && miniAppReady))
-  )
+  // Nickname is saved off-chain (API/localStorage), no mandatory on-chain mint.
+  const needsNickname = Boolean(address && !baseUser && !effectiveNickname && miniAppReady)
   const { owned: ownedBallIds } = useOwnedBalls()
   const hasMintedBall = ownedBallIds.size > 0
   const [game, setGame] = useState<GameId>('menu')
@@ -97,16 +88,7 @@ export default function App() {
         <div className="wallet-gate">
           <SetNickname
             address={address}
-            setNickname={async (addr, value) => {
-              if (nickContractDeployed) {
-                mintNickname(value)
-                return { ok: true as const }
-              }
-              return setNickname(addr, value)
-            }}
-            pending={nickContractDeployed ? mintNickPending : false}
-            externalError={nickContractDeployed ? (mintNickError?.message ?? null) : null}
-            submitLabel={nickContractDeployed ? 'Mint nickname' : 'Done'}
+            setNickname={setNickname}
             onDone={() => {}}
           />
         </div>
