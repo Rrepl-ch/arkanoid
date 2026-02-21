@@ -18,6 +18,12 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
     {
       address: ARKANOID_BALLS_ADDRESS,
       abi: ARKANOID_BALLS_ABI,
+      functionName: 'ownsBallType' as const,
+      args: [address!, i] as const,
+    },
+    {
+      address: ARKANOID_BALLS_ADDRESS,
+      abi: ARKANOID_BALLS_ABI,
       functionName: 'hasBall' as const,
       args: [address!, i] as const,
     },
@@ -39,9 +45,11 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
 
   const owned = new Set<number>()
   for (let i = 0; i < BALL_COUNT; i += 1) {
-    const hasBallResult = data?.[i * 2]
-    const hasMintedResult = data?.[i * 2 + 1]
+    const ownsBallTypeResult = data?.[i * 3]
+    const hasBallResult = data?.[i * 3 + 1]
+    const hasMintedResult = data?.[i * 3 + 2]
     if (
+      (ownsBallTypeResult?.status === 'success' && ownsBallTypeResult.result === true) ||
       (hasBallResult?.status === 'success' && hasBallResult.result === true) ||
       (hasMintedResult?.status === 'success' && hasMintedResult.result === true)
     ) {
