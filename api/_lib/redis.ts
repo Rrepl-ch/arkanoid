@@ -116,20 +116,24 @@ export async function redisPipeline(commands: Command[]): Promise<unknown[]> {
     return commands.map((cmd) => memoryExec(cmd))
   }
 
-  const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(commands),
-  })
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Redis REST failed: ${res.status} ${body}`)
+  try {
+    const res = await fetch(`${url.replace(/\/$/, '')}/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commands),
+    })
+    if (!res.ok) {
+      throw new Error(`Redis REST failed: ${res.status}`)
+    }
+    const json = (await res.json()) as unknown
+    return parseUpstashPipelineResponse(json)
+  } catch {
+    // Keep API routes functional even if Redis env is misconfigured/unavailable.
+    return commands.map((cmd) => memoryExec(cmd))
   }
-  const json = (await res.json()) as unknown
-  return parseUpstashPipelineResponse(json)
 }
 
 export async function redisExec(command: Command): Promise<unknown> {
