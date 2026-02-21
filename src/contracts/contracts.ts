@@ -16,13 +16,23 @@ export const ARKANOID_CHECKIN_ADDRESS =
 export const ARKANOID_NICKNAME_ADDRESS =
   (import.meta.env.VITE_ARKANOID_NICKNAME_ADDRESS as `0x${string}`) || '0x0000000000000000000000000000000000000000'
 
-/** ArkanoidBalls.sol exposes mint() and public mapping getter hasMinted(address,uint8). */
+/** ArkanoidBalls.sol may expose hasBall(address,uint8) and/or hasMinted(address,uint8). */
 export const ARKANOID_BALLS_ABI = [
   {
     inputs: [{ internalType: 'uint8', name: 'ballType', type: 'uint8' }],
     name: 'mint',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address', name: 'owner', type: 'address' },
+      { internalType: 'uint8', name: 'ballType', type: 'uint8' },
+    ],
+    name: 'hasBall',
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
+    stateMutability: 'view',
     type: 'function',
   },
   {

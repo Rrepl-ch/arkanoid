@@ -14,12 +14,20 @@ const BALL_COUNT = BALLS.length
 
 export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refetch: () => void } {
   const { address } = useAccount()
-  const contracts = Array.from({ length: BALL_COUNT }, (_, i) => ({
-    address: ARKANOID_BALLS_ADDRESS,
-    abi: ARKANOID_BALLS_ABI,
-    functionName: 'hasMinted' as const,
-    args: [address!, i] as const,
-  }))
+  const contracts = Array.from({ length: BALL_COUNT }, (_, i) => ([
+    {
+      address: ARKANOID_BALLS_ADDRESS,
+      abi: ARKANOID_BALLS_ABI,
+      functionName: 'hasBall' as const,
+      args: [address!, i] as const,
+    },
+    {
+      address: ARKANOID_BALLS_ADDRESS,
+      abi: ARKANOID_BALLS_ABI,
+      functionName: 'hasMinted' as const,
+      args: [address!, i] as const,
+    },
+  ])).flat()
 
   const { data, isLoading, refetch } = useReadContracts({
     contracts: CONTRACT_DEPLOYED && address ? contracts : [],
@@ -30,9 +38,16 @@ export function useOwnedBalls(): { owned: Set<number>; isLoading: boolean; refet
   }
 
   const owned = new Set<number>()
-  data?.forEach((r, i) => {
-    if (r.status === 'success' && r.result === true) owned.add(i)
-  })
+  for (let i = 0; i < BALL_COUNT; i += 1) {
+    const hasBallResult = data?.[i * 2]
+    const hasMintedResult = data?.[i * 2 + 1]
+    if (
+      (hasBallResult?.status === 'success' && hasBallResult.result === true) ||
+      (hasMintedResult?.status === 'success' && hasMintedResult.result === true)
+    ) {
+      owned.add(i)
+    }
+  }
 
   return { owned, isLoading, refetch }
 }
